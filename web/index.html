@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INSIDE by CNCD (1996) - JavaScript port</title>
+<meta name="description" content="A JavaScript port of the 1996 MS-DOS demo INSIDE by CNCD (The Gathering 1996): software 3D engine, music and reverse-engineering notes.">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<header>
+  <h1>INSIDE <small>by CNCD &middot; The Gathering 1996</small></h1>
+  <nav><a href="doc.html?f=README.md">README</a><a href="doc.html?f=WRITEUP-effects.md">Write-up: effects &amp; engine</a><a href="doc.html?f=WRITEUP-asm.md">Write-up: asm snippets</a></nav>
+</header>
+<main>
+  <div id="stage" class="stage">
+    <canvas id="screen" width="320" height="200" aria-label="Demo output, 320x200 mode 13h displayed at 4:3"></canvas>
+    <button id="big" class="big" aria-label="Play">&#9654;</button>
+    <div id="msg" class="msg" role="status"></div>
+  </div>
+  <div class="bar">
+    <button id="play" title="Play / pause (Space)">&#9654;</button>
+    <span id="tcur" class="time">0:00.0</span>
+    <input id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek">
+    <span id="tend" class="time">0:00</span>
+    <span id="scene" class="scene" title="current scene"></span>
+    <button id="mute" title="Mute (M)">&#128266;</button>
+    <input id="vol" type="range" min="0" max="100" value="80" aria-label="Volume">
+    <select id="jump" title="Jump to scene (1-9)"></select>
+    <button id="fs" title="Fullscreen (F)">&#9974;</button>
+  </div>
+  <p class="keys"><b>Space</b> play/pause &middot; <b>&larr; &rarr;</b> &plusmn;5 s (<b>Shift</b> &plusmn;1 s, <b>Ctrl</b> &plusmn;30 s) &middot; <b>, .</b> step one tick (1/52 s) when paused &middot; <b>1-9</b> scene &middot; <b>Home/End</b> &middot; <b>F</b> fullscreen &middot; <b>M</b> mute &middot; <b>P</b> pixel-perfect / smooth &middot; <b>D</b> debug overlay</p>
+  <section class="about">
+    <p>The original ran in VGA mode 13h (320&times;200, 256 colours, <b>non-square pixels</b>: shown on a 4:3 CRT). The canvas below is the real 320&times;200 index buffer, stretched to a 4:3 display box. The visuals are a pure function of the music position
+    (the demo's own script table is keyed on AMF order/row), so you can seek anywhere. Music: <code>EYE.AMF</code> (what INSIDE.EXE loads via DSMI) rendered by libopenmpt.</p>
+    <p id="status" class="status"></p>
+  </section>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

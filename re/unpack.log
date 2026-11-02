@@ -1,0 +1,77 @@
+open b'\x08'
+read 85 ->pos 85
+unhandled int21 0x1a00
+INT 0x33 0x0 at 0x1000 0xd7e
+read 4 ->pos 10036
+read 36 ->pos 10072
+read 24 ->pos 10096
+read 4096 ->pos 36386
+read 4081 ->pos 40467
+read 4080 ->pos 44547
+read 4084 ->pos 48631
+read 4080 ->pos 52711
+read 4080 ->pos 56791
+read 4080 ->pos 60871
+read 4080 ->pos 64951
+read 4080 ->pos 69031
+read 4080 ->pos 73111
+read 4080 ->pos 77191
+read 4080 ->pos 81271
+read 4084 ->pos 85355
+read 4080 ->pos 89435
+read 4081 ->pos 93516
+read 4080 ->pos 97596
+read 4080 ->pos 101676
+read 4080 ->pos 105756
+read 1552 ->pos 107308
+read 24 ->pos 10120
+read 4096 ->pos 111404
+read 1730 ->pos 113134
+read 4 ->pos 10124
+read 4096 ->pos 14220
+read 3806 ->pos 18026
+read 4 ->pos 18030
+read 4096 ->pos 22126
+read 3864 ->pos 25990
+read 4 ->pos 25994
+read 4096 ->pos 30090
+read 1193 ->pos 31283
+read 4 ->pos 31287
+read 1003 ->pos 32290
+open b'inside.dat'
+unhandled int21 0x4400
+unhandled int21 0x4400
+read 134 ->pos 134
+read 4096 ->pos 4230
+read 4096 ->pos 8326
+read 4096 ->pos 12422
+read 4096 ->pos 16518
+read 4096 ->pos 20614
+read 4096 ->pos 24710
+read 4096 ->pos 28806
+read 4096 ->pos 32902
+read 4096 ->pos 36998
+read 4096 ->pos 41094
+read 4096 ->pos 45190
+read 4096 ->pos 49286
+read 4096 ->pos 53382
+read 4096 ->pos 57478
+read 4096 ->pos 61574
+read 4096 ->pos 65670
+read 4096 ->pos 69766
+read 4096 ->pos 73862
+read 4096 ->pos 77958
+read 4096 ->pos 82054
+read 4096 ->pos 86150
+read 4096 ->pos 90246
+read 4096 ->pos 94342
+read 4096 ->pos 98438
+read 4096 ->pos 102534
+read 4096 ->pos 106630
+read 4096 ->pos 110726
+read 2048 ->pos 112774
+read 360 ->pos 113134
+stopped cs:ip 0x860 0x27df7 [0] cr0 0x11
+(49, '0x204', '0x9', '0x9', '0x8721', '0x868', '0x1301')
+(33, '0x2509', '0x18a', '0x9', '0x8721', '0x860', '0x67fc')
+(49, '0x205', '0x109', '0x860', '0x8721', '0x868', '0x12a4')

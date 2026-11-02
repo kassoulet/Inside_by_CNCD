@@ -1,0 +1,45 @@
+open b'\x08'
+read 85 ->pos 85
+unhandled int21 0x1a00
+INT 0x33 0x0 at 0x1000 0xd7e
+read 4 ->pos 10036
+read 36 ->pos 10072
+read 24 ->pos 10096
+read 4096 ->pos 36386
+read 4081 ->pos 40467
+read 4080 ->pos 44547
+read 4084 ->pos 48631
+read 4080 ->pos 52711
+read 4080 ->pos 56791
+read 4080 ->pos 60871
+read 4080 ->pos 64951
+read 4080 ->pos 69031
+read 4080 ->pos 73111
+read 4080 ->pos 77191
+read 4080 ->pos 81271
+read 4084 ->pos 85355
+read 4080 ->pos 89435
+read 4081 ->pos 93516
+read 4080 ->pos 97596
+read 4080 ->pos 101676
+read 4080 ->pos 105756
+read 1552 ->pos 107308
+read 24 ->pos 10120
+read 4096 ->pos 111404
+read 1730 ->pos 113134
+read 4 ->pos 10124
+read 4096 ->pos 14220
+read 3806 ->pos 18026
+read 4 ->pos 18030
+read 4096 ->pos 22126
+read 3864 ->pos 25990
+read 4 ->pos 25994
+read 4096 ->pos 30090
+read 1193 ->pos 31283
+read 4 ->pos 31287
+read 1003 ->pos 32290
+ENTRY reached, regs ['0x860', '0x26a48', '0x858', '0x58', '0x858', '0x19b6a0', '0x300', '0x21', '0x0', '0x26a48', '0x76c', '0x19b666', '0x19b666']
+stopped cs:ip 0x860 0x26a48 [0] cr0 0x11
+(33, '0x3e61', '0x5', '0x2', '0x4a07', '0x1000', '0xd7e')
+(49, '0x300', '0x21', '0x0', '0x6a48', '0x868', '0x1989')
+(33, '0x4a00', '0x2a9c', '0x0', '0x0', '0xf000', '0x10a')

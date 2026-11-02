@@ -1,0 +1,108 @@
+2721868
+96
+('intro/intro.shd', 0, 16384, 16384)
+('intro/intro.pal', 16384, 768, 768)
+('intro/intro.raw', 17152, 64000, 64000)
+('logo/twlogo.raw', 81152, 65536, 65536)
+('logo/logo.shd', 146688, 16384, 16384)
+('flower/jeesus.pal', 2580041, 768, 768)
+('flower/jeesus1.raw', 2580809, 65536, 65536)
+('flower/jeesus2.raw', 2646345, 65536, 65536)
+('flower/tunnel1.lws', 2711881, 2631, 2631)
+('nigga/poksi.sro', 2714512, 2744, 2744)
+intro/intro.shd            off=       0 size=   16384
+intro/intro.pal            off=   16384 size=     768
+intro/intro.raw            off=   17152 size=   64000
+logo/twlogo.raw            off=   81152 size=   65536
+logo/logo.shd              off=  146688 size=   16384
+logo/logo.pal              off=  163072 size=     768
+logo/inside.raw            off=  163840 size=   34611
+logo/obuke.sro             off=  198451 size=    3640
+logo/inmask.raw            off=  202091 size=   37191
+logo/inmask.shd            off=  239282 size=    4096
+credits/tunnel.pal         off=  243378 size=     768
+credits/tunnel.raw         off=  244146 size=  262144
+credits/tunnel.shd         off=  506290 size=   16384
+credits/smoke.shd          off=  522674 size=   65536
+credits/sauhu.raw          off=  588210 size=    4096
+credits/tunnel.int         off=  592306 size=   65536
+credits/piikkis.raw        off=  657842 size=   65536
+credits/kredu1.raw         off=  723378 size=   12975
+credits/kredu2.raw         off=  736353 size=   10950
+credits/kredu3.raw         off=  747303 size=   26076
+credits/kredu6.raw         off=  773379 size=   22050
+credits/kredu7.raw         off=  795429 size=    9675
+credits/kredu8.raw         off=  805104 size=   11088
+credits/wtrmask.raw        off=  816192 size=   64000
+credits/wtrmask.int        off=  880192 size=   65536
+credits/tuubi.sro          off=  945728 size=    3536
+credits/piikkis.sro        off=  949264 size=    5136
+flight/lens1.raw           off=  954400 size=    4662
+flight/lens2.raw           off=  959062 size=    2236
+flight/lens3.raw           off=  961298 size=     713
+flight/lens4.raw           off=  962011 size=     132
+flight/lens5.raw           off=  962143 size=      16
+flight/flare.shd           off=  962159 size=   65536
+flight/sun.raw             off= 1027695 size=   16384
+flight/map.raw             off= 1044079 size=  262144
+flight/map.fog             off= 1306223 size=   32768
+flight/map.shd             off= 1338991 size=   16384
+flight/river.raw           off= 1355375 size=   65536
+flight/ship.sro            off= 1420911 size=    5624
+flight/map.pal             off= 1426535 size=     768
+temple/temple.raw          off= 1427303 size=   65536
+temple/flare.raw           off= 1492839 size=   13312
+temple/temple.int          off= 1506151 size=   65536
+temple/flare.shd           off= 1571687 size=   65536
+temple/temple.pal          off= 1637223 size=     768
+temple/mesta21.sro         off= 1637991 size=    1280
+temple/mesta22.sro         off= 1639271 size=    4372
+temple/mesta23.sro         off= 1643643 size=    4240
+temple/putki.sro           off= 1647883 size=     372
+temple/putki.sro           off= 1648255 size=     372  (duplicate name #2, unreachable by the demo)
+temple/putki.sro           off= 1648627 size=     372  (duplicate name #3, unreachable by the demo)
+nigga/nigga1.pal           off= 1648999 size=     768
+nigga/nigga1.raw           off= 1649767 size=   65536
+nigga/nigga1.shd           off= 1715303 size=   65536
+nigga/sprite1.raw          off= 1780839 size=   25584
+nigga/nigga2.pal           off= 1806423 size=     768
+nigga/nigga2.raw           off= 1807191 size=   65536
+nigga/nigga2.shd           off= 1872727 size=   65536
+nigga/sprite2.raw          off= 1938263 size=   34400
+nigga/nigga9.pal           off= 1972663 size=     768
+nigga/nigga9.raw           off= 1973431 size=   65536
+nigga/nigga9.qnt           off= 2038967 size=   16384
+nigga/sprite9.raw          off= 2055351 size=   40278
+nigga/shadow9.raw          off= 2095629 size=   16384
+nigga/shadow9.sdw          off= 2112013 size=    4096
+nigga/nigga4.pal           off= 2116109 size=     768
+nigga/nigga4.raw           off= 2116877 size=   65536
+nigga/nigga4.qnt           off= 2182413 size=   16384
+nigga/sprite4.raw          off= 2198797 size=   28560
+nigga/shadow4.raw          off= 2227357 size=   65536
+nigga/shadow4.sdw          off= 2292893 size=    4096
+water/waterenv.raw         off= 2296989 size=   65536
+water/water.shd            off= 2362525 size=   16384
+water/water.pal            off= 2378909 size=     768
+water/water.raw            off= 2379677 size=   64000
+water/fish.sro             off= 2443677 size=     208
+water/water.int            off= 2443885 size=   65536
+water/obuke.sro            off= 2509421 size=    8024
+flower/tunneli1.sro        off= 2517445 size=   20324
+flower/kukka1.sro          off= 2537769 size=    2352
+flower/kukka1.sro          off= 2540121 size=    2352  (duplicate name #2, unreachable by the demo)
+flower/kukka1-2.sro        off= 2542473 size=    2352
+flower/kukka1-3.sro        off= 2544825 size=    2352
+flower/kukka1-4.sro        off= 2547177 size=    2352
+flower/kukka1-5.sro        off= 2549529 size=    2352
+flower/kukka1-6.sro        off= 2551881 size=    2352
+flower/kukka1-7.sro        off= 2554233 size=    2352
+flower/kukka1-8.sro        off= 2556585 size=    2352
+flower/kukka2.sro          off= 2558937 size=    2360
+flower/kukka2-2.sro        off= 2561297 size=    2360
+flower/jeesus.shd          off= 2563657 size=   16384
+flower/jeesus.pal          off= 2580041 size=     768
+flower/jeesus1.raw         off= 2580809 size=   65536
+flower/jeesus2.raw         off= 2646345 size=   65536
+flower/tunnel1.lws         off= 2711881 size=    2631
+nigga/poksi.sro            off= 2714512 size=    2744

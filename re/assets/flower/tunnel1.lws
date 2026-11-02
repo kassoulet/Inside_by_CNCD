@@ -1,0 +1,118 @@
+LWSC
+1
+
+FirstFrame 1
+LastFrame 265
+FrameStep 1
+FramesPerSecond 30.000000
+
+LoadObject OBJECTS\demo\tunneli1.lwo
+ShowObject 4 7
+ObjectMotion (unnamed)
+  9
+  1
+  0 0 0 0 0 0 1 1 1
+  0 0 0 0 0
+EndBehavior 1
+ShadowOptions 7
+
+AmbientColor 255 255 255
+AmbIntensity 0.250000
+
+AddLight
+LightName Light
+ShowLight 0 7
+LightMotion (unnamed)
+  9
+  1
+  0 0 0 60 30 0 1 1 1
+  0 0 0 0 0
+EndBehavior 1
+LightColor 255 255 255
+LgtIntensity 1.000000
+LightType 0
+ShadowCasting 1
+
+ShowCamera 1 7
+CameraMotion (unnamed)
+  9
+  19
+  0.256546 0.223654 -5.11846 -317.2 -15 0 1 1 1
+  0 0 0 0 0
+  0.531546 0.323654 -4.84346 -396.65 3.00001 0 1 1 1
+  10 0 0 0 0
+  0.356546 0.223654 -4.51846 -469.6 26 0 1 1 1
+  20 0 0 0 1
+  0.056546 -0.00134598 -4.66846 -518.2 -4.89998 0 1 1 1
+  40 0 0 0 0
+  0.0691697 0.0502165 -4.9031 -461.081 -7.39998 -0.21875 1 1 1
+  50 0 0 0 0
+  -0.271743 0.148654 -5.06906 -380.7 -6.19998 -0.5 1 1 1
+  60 0 0 0 0
+  -0.334578 0.223524 -4.89788 -347.72 -2.19425 -0.523438 1 1 1
+  70 0 0 0 0
+  -0.23553 0.223654 -4.67602 -355.5 8.00002 -0.5 1 1 1
+  80 0 0 0 0
+  -0.218867 0.173654 -4.36552 -363.681 -6.46874 -0.5 1 1 1
+  95 0 0 0 0
+  -0.374046 0.098654 -4.02245 -377.8 -27.1 -0.5 1 1 1
+  105 0 0 0 0
+  -0.395832 0.321571 -3.7699 -354.431 -19.5193 -0.5 1 1 1
+  115 0 0 0 0
+  -0.274046 0.448654 -3.54745 -331.2 -9.99999 -0.5 1 1 1
+  125 0 0 0 0
+  -0.0990463 0.498654 -3.17245 -335.6 -16.3 -0.5 1 1 1
+  145 0 0 0 0
+  0.130346 0.548654 -2.75095 -240.8 -18.4 -0.5 1 1 1
+  165 0 0 0 0
+  0.505346 0.698654 -2.97595 -237.6 -29 -0.5 1 1 1
+  185 0 0 0 0
+  0.705346 0.873654 -3.22595 -315.6 -30.4 -0.5 1 1 1
+  205 0 0 0 0
+  0.880346 1.02365 -2.95095 -379.1 -2.1 -0.5 1 1 1
+  225 0 0 0 0
+  0.655346 1.02365 -2.45095 -370.2 -35.6 -0.5 1 1 1
+  245 0 0 0 0
+  0.555346 1.24865 -2.10095 -358.6 -42.4 -0.5 1 1 1
+  265 0 0 0 0
+EndBehavior 1
+ZoomFactor 3.200000
+RenderMode 2
+RayTraceEffects 0
+Resolution -1
+PixelAspectRatio 2
+SegmentMemory 2200000
+Antialiasing 0
+AdaptiveSampling 1
+AdaptiveThreshold 8
+FilmSize 2
+FieldRendering 0
+MotionBlur 0
+DepthOfField 0
+
+SolidBackdrop 1
+BackdropColor 0 0 0
+ZenithColor 0 40 80
+SkyColor 120 180 240
+GroundColor 50 40 30
+NadirColor 100 80 60
+FogType 0
+DitherIntensity 1
+AnimatedDither 0
+
+DataOverlayLabel  
+OutputFilenameFormat 1
+SaveRGBImagesPrefix IMAGES\tunl
+RGBImageFormat 2
+
+ViewMode 1
+ViewAimpoint 0.750000 0.000000 -3.424999
+ViewDirection 0.000000 -0.174533 0.000000
+ViewZoomFactor 20.546001
+LayoutGrid 8
+GridSize 5.000000
+ShowMotionPath 1
+ShowSafeAreas 0
+ShowBGImage 0
+ShowFogRadius 0
+ShowRedraw 0
