@@ -269,3 +269,5 @@ scene clock count these ticks. This is why the JS port can run from the music po
 
 `0x1c4ac(f, n)` computes `adder[i] = (base[i]*f - cur[i]) / n` once, the ISR adds it every tick and truncates to the DAC. Flashes, inverted flashes and fade-outs are
 all the same routine with different targets. `web/js/fade.js` matches the emulated original to < 1 DAC step on every tick.
+
+**Correction on the tick rate (snippet 14).** 285.714 ticks per music second was derived for a 70 Hz monitor with four tick interrupts per retrace; the demo calibrates its tick from a PIT measurement of the monitor and gives DSMI a tick length computed from it, so the real number of ticks per second of music depends on the machine. A run of the original (reported: DOSBox) shows the in-scene animation at about 0.30-0.35 of the emulated rate. The port keeps the tick-exact scenes and exposes the ratio as the player's *speed* setting (default 0.33).

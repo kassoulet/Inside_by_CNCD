@@ -9,8 +9,8 @@ const fb = new Uint8Array(64000), lut = new Uint32Array(256);
 let dat, tl, scenes = {}, T_END = 182.75, ac = null, cp = null, ready = null, amf = null;
 let playing = false, tBase = 0, cBase = 0, tPaused = 0, lastTick = -1, lastKey = '', dbg = false, errShown = {};
 
-const SPEEDS = [1, 0.85, 0.7, 0.5, 0.35];
-let speed = +(new URLSearchParams(location.search).get('speed') || localStorage.getItem('inside-speed') || 0.7);
+const SPEEDS = [1, 0.7, 0.5, 0.35, 0.33, 0.3, 0.25];
+let speed = +(new URLSearchParams(location.search).get('speed') || localStorage.getItem('inside-speed2') || 0.33);
 const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60); return m + ':' + (t % 60).toFixed(1).padStart(4, '0'); };
 const nowT = () => playing ? Math.min(T_END, tBase + (ac.currentTime - cBase)) : tPaused;
 
@@ -38,8 +38,8 @@ async function init() {
   const [times, table] = await Promise.all([fetch('assets/music_times.json').then(r => r.json()), fetch('assets/script_table.json').then(r => r.json())]);
   tl = new Timeline(times.times, table, scenes);
   tl.setSpeed(speed);
-  { const sp = $('speed'); for (const v of SPEEDS) { const o = document.createElement('option'); o.value = v; o.textContent = (v === 1 ? 'speed 1.00 (emulated original)' : 'speed ' + v.toFixed(2)); sp.appendChild(o); } sp.value = SPEEDS.includes(speed) ? speed : 0.7;
-    sp.onchange = () => { speed = +sp.value; try { localStorage.setItem('inside-speed', speed); } catch (e) {} tl.setSpeed(speed); lastTick = -1; draw(Math.floor(nowT() * TICK_HZ), true); sp.blur(); }; }
+  { const sp = $('speed'); for (const v of SPEEDS) { const o = document.createElement('option'); o.value = v; o.textContent = (v === 1 ? 'speed 1.00 (emulated 285.7 ticks/s)' : 'speed ' + v.toFixed(2)); sp.appendChild(o); } sp.value = SPEEDS.includes(speed) ? speed : 0.33;
+    sp.onchange = () => { speed = +sp.value; try { localStorage.setItem('inside-speed2', speed); } catch (e) {} tl.setSpeed(speed); lastTick = -1; draw(Math.floor(nowT() * TICK_HZ), true); sp.blur(); }; }
   T_END = tl.endTick / TICK_HZ;
   $('tend').textContent = fmt(T_END);
   const jump = $('jump'); jump.innerHTML = '<option value="">scene...</option>';
