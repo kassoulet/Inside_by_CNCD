@@ -11,7 +11,7 @@ Gathering 1996. 113 KB of executable, a 2.7 MB LZSS-packed `INSIDE.DAT` (96 file
 
 ![error per scene](figures/error_per_scene.png)
 
-*Figure: mean absolute RGB error (0-255) per scene after that alignment. The temple is bit-exact; the flower scene's error comes from the morphing petals, whose phase is not aligned in this comparison.*
+*Figure: mean absolute RGB error (0-255) per scene after that alignment. The temple is bit-exact; the flower scene's error (39) is not a timing shift (a search over +-400 ticks does not lower it): its vertex shades contain `rand()` (section 4), the port embeds the table dumped from one reference run, and this golden run, started 'frames since the trigger', draws a different one, so the petals differ. The scene's own comparison (75 % of the frames pixel-exact, see its section) uses the matching table.*
 
 ![3D objects](figures/objects_3d.png)
 
