@@ -28,3 +28,5 @@ Data embedded instead of regenerated because they depend on `rand()` history: cr
 Palette flashes/fades are run by `script.js`/`fade.js` and can be 1-2 frames off the golden run (the golden harness quantises events to 10-tick frames).
 
 Figures and 3D: `figures/` (`tools/make_figures.py`), `web/viewer3d.html` (interactive viewer of the `.sro` meshes, `tools/export_meshes.py`).
+
+**Animation speed.** The player has a *speed* selector (default 0.70, `?speed=0.5` in the URL, remembered in `localStorage`): it scales the animation *inside* the scenes (scene ticks, scene-local events, palette cycling) while the music, scene changes, flashes and fades stay on the music rows. 1.00 is the speed of the emulated original (285.7 ticks per music second, bit-exact per tick); the 0.70 default compensates for the original feeling slower on real hardware.
