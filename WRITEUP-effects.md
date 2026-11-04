@@ -3,6 +3,20 @@
 *INSIDE* by **CNCD** (code: wili, jouni, juliet; graphics: destop; music: Yolk & Legend; sound: DSMI by OC/Virtual Visions; extender: PMODE/W), released at The
 Gathering 1996. 113 KB of executable, a 2.7 MB LZSS-packed `INSIDE.DAT` (96 files), a 4-channel-ish AMF module `EYE.AMF` (677 KB). 182.75 s.
 
+## 0. At a glance
+
+![original against port](figures/compare_scenes.png)
+
+*Figure: one frame of each scene, the original run headless under emulation (left), the JavaScript port (middle) and the absolute difference (right). The golden run starts a scene "frames since its trigger", so the port frame is matched with the best time shift (printed under each row).*
+
+![error per scene](figures/error_per_scene.png)
+
+*Figure: mean absolute RGB error (0-255) per scene after that alignment. The temple is bit-exact; the flower scene's error comes from the morphing petals, whose phase is not aligned in this comparison.*
+
+![3D objects](figures/objects_3d.png)
+
+*Figure (3D): twelve of the meshes in `INSIDE.DAT` (`.sro`: signed 16-bit vertices, triangle faces). An interactive viewer (three.js, orbit/zoom/wireframe) is in [`web/viewer3d.html`](web/viewer3d.html). Regenerate with `python3 tools/make_figures.py` (after running `golden.py` and `render_node.mjs` for the START times listed in the script) and `python3 tools/export_meshes.py > web/assets/meshes.json`.*
+
 ## 1. Display and timing
 
 * **VGA mode 13h, 320x200, 256 colours.** The pixels are **not square**: a CRT shows 320x200 on a 4:3 screen, so each pixel is 1.2 times taller than wide. The engine knows:

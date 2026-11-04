@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INSIDE 3D objects</title>
+<style>html,body{margin:0;height:100%;background:#0b0b10;color:#ddd;font:13px system-ui,sans-serif}
+#ui{position:fixed;left:10px;top:10px;background:#000a;padding:8px 10px;border-radius:6px;max-width:300px;z-index:2}#ui label{display:block;margin:4px 0}select{width:100%}
+#info{position:fixed;left:10px;bottom:10px;color:#9ab;font-size:12px}a{color:#8cf}</style></head><body>
+<div id="ui"><b>INSIDE.DAT meshes (.sro)</b>
+<label>Object <select id="obj"></select></label>
+<label><input type="checkbox" id="wire"> wireframe</label>
+<label><input type="checkbox" id="spin" checked> auto-rotate</label>
+<div id="stats"></div><div><a href="doc.html?f=WRITEUP-effects.md">write-up</a> · <a href="index.html">player</a></div></div>
+<div id="info">drag: orbit · wheel: zoom. Vertices are signed 16-bit integers; the original's y axis points down.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(devicePixelRatio);R.setSize(innerWidth,innerHeight);document.body.appendChild(R.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0b10);const cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,1,200000);
+const ctl=new THREE.OrbitControls(cam,R.domElement);ctl.autoRotate=true;
+scene.add(new THREE.AmbientLight(0xffffff,0.55));const dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(1,1,2);scene.add(dl);
+let D,mesh=null;const sel=document.getElementById('obj');
+fetch('assets/meshes.json').then(r=>r.json()).then(j=>{D=j;for(const k of Object.keys(D)){const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);}sel.value=D['logo/obuke']?'logo/obuke':Object.keys(D)[0];build(true);});
+function build(reset){if(mesh)scene.remove(mesh);const m=D[sel.value];const g=new THREE.BufferGeometry();
+  const v=Float32Array.from(m.v);for(let i=1;i<v.length;i+=3)v[i]=-v[i];   // the original's y axis points down
+  g.setAttribute('position',new THREE.BufferAttribute(v,3));g.setIndex(m.f);g.computeVertexNormals();
+  mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x72b7b2,wireframe:document.getElementById('wire').checked,flatShading:true,side:THREE.DoubleSide}));scene.add(mesh);
+  g.computeBoundingSphere();const r=g.boundingSphere.radius,c=g.boundingSphere.center;document.getElementById('stats').textContent=(m.v.length/3)+' vertices, '+(m.f.length/3)+' faces';
+  if(reset){cam.position.set(c.x+r*1.8,c.y+r*0.8,c.z+r*1.8);ctl.target.copy(c);}}
+sel.addEventListener('input',()=>build(true));document.getElementById('wire').addEventListener('input',()=>build(false));document.getElementById('spin').addEventListener('input',e=>{ctl.autoRotate=e.target.checked;});
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();});
+(function loop(){requestAnimationFrame(loop);ctl.update();R.render(scene,cam);})();
+</script></body></html>

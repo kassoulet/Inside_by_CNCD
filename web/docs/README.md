@@ -26,3 +26,5 @@ Near-exact: **twirl** (except around palette flashes), **flower** (75 % of frame
 Approximated: **flight** (mean RGB error ~12/255: ships' env normals recomputed, span rounding, camera/ship path from an emulator-recorded table).
 Data embedded instead of regenerated because they depend on `rand()` history: credits flight path (`creditsdata.js`), flower tunnel shade table, flight height field/paths, temple flare directions, water seed.
 Palette flashes/fades are run by `script.js`/`fade.js` and can be 1-2 frames off the golden run (the golden harness quantises events to 10-tick frames).
+
+Figures and 3D: `figures/` (`tools/make_figures.py`), `web/viewer3d.html` (interactive viewer of the `.sro` meshes, `tools/export_meshes.py`).
