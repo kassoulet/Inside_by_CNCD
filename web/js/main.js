@@ -51,7 +51,10 @@ async function init() {
 async function initAudio() {
   if (ac) return;
   ac = new AudioContext();
-  cp = new ChiptuneJsPlayer({ context: ac, repeatCount: 0, interpolationFilter: 8, stereoSeparation: 100 });
+  // EYE.AMF is a 4-channel Amiga-style module with hard L/R panning; full stereo separation (100)
+  // puts each voice in one speaker only. libopenmpt's stereo separation render param (percent,
+  // 0 = mono .. 100 = panning as written, up to 200 = extra wide) pulls the channels together.
+  cp = new ChiptuneJsPlayer({ context: ac, repeatCount: 0, interpolationFilter: 8, stereoSeparation: 50 });
   cp.gain.connect(ac.destination);
   ready = new Promise(r => cp.onInitialized(r));
   cp.onProgress(m => { if (playing && Math.abs(m.pos - nowT()) > 0.15 && m.pos < T_END + 5) { tBase = m.pos; cBase = ac.currentTime; } });   // resync clock to the worklet

@@ -23,6 +23,7 @@ INSIDE.DAT: `u32 usize` + LZSS (flag byte LSB first; literal = 1; 2-byte match =
 Bit-exact in palette-index space against the original run in the emulator (0 differing pixels): **logo, intro, water, credits (839/841)**; the six face functions (180/180 recorded triangles).
 Bit-exact (palette-index space, 0 differing pixels over 140+ frames each): **nigga variants 3 and 4** (the lit room box rebuilt with the engine: per-triangle material uv, camera drift, light and shadow quad closed forms).
 Near-exact: **twirl** (except around palette flashes), **flower** (75 % of frames exact, the rest are flash frames), **temple** (sub-pixel rounding on one billboard), nigga variants 1-2 (~96 % of pixels).
+**Sound.** `EYE.AMF` is a 4-channel module with hard L/R panning; the player renders it with libopenmpt's stereo separation at 50 % (`stereoSeparation` in `web/js/main.js`, 100 = panning exactly as written, 0 = mono) so the voices are not stuck in one speaker.
 Approximated: **flight** (mean RGB error ~12/255: ships' env normals recomputed, span rounding, camera/ship path from an emulator-recorded table).
 Data embedded instead of regenerated because they depend on `rand()` history: credits flight path (`creditsdata.js`), flower tunnel shade table, flight height field/paths, temple flare directions, water seed.
 Palette flashes/fades are run by `script.js`/`fade.js` and can be 1-2 frames off the golden run (the golden harness quantises events to 10-tick frames).
