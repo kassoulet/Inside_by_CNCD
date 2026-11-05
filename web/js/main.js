@@ -19,7 +19,7 @@ function pal2lut(p) { for (let i = 0; i < 256; i++) { const r = p[i * 3], gg = p
 function draw(tick, force) {
   const st = tl.at(tick);
   if (st.seg && scenes[st.seg.id]) {
-    try { scenes[st.seg.id].render(fb, st.sceneTick, { events: st.seg.events, seg: st.seg, tick: Math.floor(tick * (tl.speed || 1)), dat }); }
+    try { scenes[st.seg.id].render(fb, st.sceneTick, { events: st.seg.events, seg: st.seg, tick: Math.floor(tick * tl.spd(st.seg)), dat }); }
     catch (e) { if (!errShown[st.seg.id]) { errShown[st.seg.id] = 1; console.error(e); $('status').textContent = 'scene ' + st.seg.id + ' error: ' + e.message; } }
   } else fb.fill(0);
   if (st.ended) fb.fill(0);

@@ -42,8 +42,10 @@ export class Timeline {
     this.reset();
   }
   /** in-scene animation speed factor (1 = the emulated original's 285.7 ticks per music second; scene changes, flashes and fades stay on the music rows) */
+  /** speed of a scene: water and tunnel2 run twice as fast as the others (a DOSBox-X run of the original fits ~0.25 for most scenes; these two looked too slow at 0.25, wanted ~0.5) */
+  spd(sg) { const s = this.speed || 1; return sg && (sg.id === 'water' || sg.id === 'tunnel2') ? Math.min(1, 2 * s) : s; }
   setSpeed(v) { this.speed = v; this._sc = new Map(); this.reset(); }
-  _scaled(sg) { const s = this.speed || 1; if (s === 1) return sg; let o = this._sc && this._sc.get(sg); if (!o) { o = Object.assign({}, sg, { events: sg.events.map(e => Object.assign({}, e, { tick: e.tick * s })) }); (this._sc = this._sc || new Map()).set(sg, o); } return o; }
+  _scaled(sg) { const s = this.spd(sg); if (s === 1) return sg; let o = this._sc && this._sc.get(sg); if (!o) { o = Object.assign({}, sg, { events: sg.events.map(e => Object.assign({}, e, { tick: e.tick * s })) }); (this._sc = this._sc || new Map()).set(sg, o); } return o; }
   reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this._boot(); }
   _boot() { /* intro init (0x1f811 / 0x1f81f): base = intro palette, cur = black, fade up over 0x78 ticks */
     const s0 = this.scenes.intro; if (s0 && s0.palette) { this.fade.setBase(s0.palette); this.lastBase = s0.palette; this.fade.fadeTo(1, 0x78); } }
@@ -63,7 +65,7 @@ export class Timeline {
     }
     f.tick();                                           // ISR: palette step
     const sg = this.segs[this.seg], sc = sg && this.scenes[sg.id];
-    if (sc && sc.basePalette) { const p = sc.basePalette(Math.floor((k - sg.start) * (this.speed || 1)), this._scaled(sg)); if (p && p !== this.lastBase) { f.setBase(p); this.lastBase = p; } }
+    if (sc && sc.basePalette) { const p = sc.basePalette(Math.floor((k - sg.start) * this.spd(sg)), this._scaled(sg)); if (p && p !== this.lastBase) { f.setBase(p); this.lastBase = p; } }
   }
   /** state for display tick k: { seg (segment or null), sceneTick, pal (Uint8Array(768) 6-bit), ended } */
   at(k) {
@@ -73,6 +75,6 @@ export class Timeline {
     }
     while (this.k < k) { this._step(); if (this.k % 1024 === 0 && !this.ckpt.some(x => x.k === this.k)) this.ckpt.push({ k: this.k, ei: this.ei, seg: this.seg, lastBase: this.lastBase, fade: this.fade.clone() }); }
     const sg = this.segs[this.seg] || null;
-    return { seg: sg ? this._scaled(sg) : null, sceneTick: sg ? Math.floor((k - sg.start) * (this.speed || 1)) : 0, pal: this.fade.cur, ended: k >= this.endTick };
+    return { seg: sg ? this._scaled(sg) : null, sceneTick: sg ? Math.floor((k - sg.start) * this.spd(sg)) : 0, pal: this.fade.cur, ended: k >= this.endTick };
   }
 }
