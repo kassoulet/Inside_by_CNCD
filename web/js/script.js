@@ -42,8 +42,8 @@ export class Timeline {
     this.reset();
   }
   /** in-scene animation speed factor (1 = the emulated original's 285.7 ticks per music second; scene changes, flashes and fades stay on the music rows) */
-  /** speed of a scene: water and tunnel2 run twice as fast as the others (a DOSBox-X run of the original fits ~0.25 for most scenes; these two looked too slow at 0.25, wanted ~0.5) */
-  spd(sg) { const s = this.speed || 1; return sg && (sg.id === 'water' || sg.id === 'tunnel2') ? Math.min(1, 2 * s) : s; }
+  /** speed of a scene: one value for all (a DOSBox-X run with cycles=fixed 90000 fits 0.25 in logo, credits, flower and water; water/tunnel2 were briefly doubled, the fit says no) */
+  spd(sg) { return this.speed || 1; }
   setSpeed(v) { this.speed = v; this._sc = new Map(); this.reset(); }
   _scaled(sg) { const s = this.spd(sg); if (s === 1) return sg; let o = this._sc && this._sc.get(sg); if (!o) { o = Object.assign({}, sg, { events: sg.events.map(e => Object.assign({}, e, { tick: e.tick * s })) }); (this._sc = this._sc || new Map()).set(sg, o); } return o; }
   reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this._boot(); }
