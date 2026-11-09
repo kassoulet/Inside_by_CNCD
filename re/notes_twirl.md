@@ -1,6 +1,6 @@
 # Scene 'twirl' (147.6 s .. 157.5 s): notes
 
-Port: `web/js/scenes/twirl.js`. Verified against the golden run: **pixel-exact (index frames identical, MAE 0.00) for all frames except the ~3 frames around each palette flash** (whole-run MAE with palette 14.7 is dominated by the first 3 start-up frames of the golden capture and by the 4 variant-switch flashes; mid-scene frames are MAE 0.0-1.9).
+Port: `web/js/scenes/twirl.js`. Verified against the golden run: **pixel-exact (index frames identical, MAE 0.00) for all frames except the ~3 frames around each palette flash** (whole-run MAE with palette 14.7 is dominated by the first 3 start-up frames of the golden capture and by the 4 variant-switch flashes; mid-scene frames are MAE 0.0-1.9). **Flash timing re-checked with `golden.py --k=1` (149.3 s, invert + white flash at 149.526 s): the palette jumps on the same tick in the golden run and in the port, and the fade-out matches tick by tick (19 ticks); the 'flash 10 ticks early' seen with `--k=10` is the harness quantising events to 10-tick frames.** What remains after the flash is a small steady palette difference (mean |dDAC| 0.49 on the new variant's base palette, sum 21847 vs 21901), not a timing error.
 
 ## Function map (linear addresses)
 | addr | role |

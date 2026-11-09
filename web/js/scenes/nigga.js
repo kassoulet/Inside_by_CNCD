@@ -1,5 +1,5 @@
 // Scene 'nigga' (59.0-68.9 s and 136.6-147.6 s).  See re/notes_nigga.md.
-// Variants 1/2 (warped 7x7 quad mesh, two textures combined through a 256x256 table, + sprite): faithful port (~96% of pixels identical on the checked frames).
+// Variants 1/2 (warped 7x7 quad mesh, two textures combined through a 256x256 table, + sprite): engine mesh drawn by face function 0x33a82 (= MODE.LIGHTMAP), bit-exact against the emulator.
 // Variants 3/4 (original: textured+Gouraud-lit 'kuubio' room box, camera/light animation, shadow quad): APPROXIMATION, see notes.
 import { Scene, Node, Mesh, Light, Material, parseSRO, mat3, MODE } from '../engine3d.js';
 const R = 10000 / 35, LAG = 10, FRAME_TICKS = 20;   // the golden captures render one nigga frame per 20 ticks (the frame-wait spin loop injects extra ISR ticks)
@@ -18,7 +18,6 @@ const V34 = {
 };
 const S0 = Math.ceil(58.995 * R - 1e-9), N1 = Math.ceil(68.917 * R - 1e-9) - S0;           // A ticks in period 1
 const E1 = Math.ceil(61.533 * R - 1e-9) - S0;                                              // 0x20680 event (period 1), in A ticks
-const G0 = [[-0.9899925, 0, 0.14112001], [0.1407665, 0.0707372, 0.98751255], [-0.00998243, 0.99749499, -0.0700293]]; // grid orientation at A tick 0; M(n)=G0*Ry(0.01 n) (0x30070 per ISR tick)
 const PRE = { st: [0.07, 0.05, -0.06], f: [0.3, 0.2, 0.4, 0.6, 0.7, 0.5], a: [425, 130, 250] };
 const POST = { st: [-0.07, -0.08, -0.06], f: [-0.3, -0.2, -0.4, -0.6, -0.7, -0.5], a: [-435, -150, -250] };   // set by 0x20680
 const POS = { 1: [0, 44], 2: [0, 0], 3: [46, 53], 4: [94, 28] };   // measured against the golden frames (0x31df0 args: v3 = 320-w,200-h)
@@ -65,12 +64,18 @@ export default function make(dat) {
     const pal = dat.pal(`nigga/${FILE[v]}.pal`); pal[0] = pal[1] = pal[2] = 0;
     V[v] = { pal, tex: dat.get(`nigga/${FILE[v]}.raw`), shd: v < 3 ? dat.get(`nigga/${FILE[v]}.shd`) : null, spr: dat.get(`nigga/${SPR[v][0]}.raw`), sw: SPR[v][1], sh: SPR[v][2] };
   }
-  const sx = new Float64Array(64), sy = new Float64Array(64), at = new Float64Array(256), M = new Float64Array(9);
+  const at = new Float64Array(256);
   const ev = (seg, fn) => { const e = seg.events.find(x => x.fn === fn); return e ? e.tick : 1e9; };
   const variantAt = (seg, t) => seg.fn === '0x217bc' ? (t >= ev(seg, '0x21ba0') ? 4 : 2) : (t >= ev(seg, '0x2171c') ? 1 : 3);
+  const PH = new Map();
+  function phase(P, m) {   // the three phase accumulators [0x103810/824/838] += step every ISR tick, in float32 (verified on the emulator's vertex attributes: 0 of 6656 values differ, against 98 with m*step)
+    let t = PH.get(P); if (!t) PH.set(P, t = [[0, 0, 0]]);
+    while (t.length <= m) { const q = t[t.length - 1]; t.push(q.map((x, i) => Math.fround(x + Math.fround(P.st[i])))); }
+    return t[m];
+  }
   function warp(n, v) {   // vertex attributes (+0x28,+0x2a,+0x2c,+0x2e) for A tick n; 0x207a0..0x20b79
     const ev2 = E1, E2 = N1 + 0;  // period-2 event handled by caller through n offset (see render)
-    const P = n.post ? POST : PRE, m = n.m, p = [P.st[0] * m, P.st[1] * m, P.st[2] * m];
+    const P = n.post ? POST : PRE, p = phase(P, n.m);
     for (let j = 0; j < 8; j++) for (let i = 0; i < 8; i++) {
       const a = P.f[0] * i + p[0] + P.f[1] * j, b = P.f[2] * i + p[1] + P.f[3] * j, c = P.f[4] * i + p[2] + P.f[5] * j, k = (j * 8 + i) * 4;
       if (v < 3) {
@@ -81,33 +86,27 @@ export default function make(dat) {
       } else { at[k] = i * 512; at[k + 1] = j * 512; at[k + 2] = 0; at[k + 3] = 0; }
     }
   }
-  function tri(fb, a, b, c, tex, shd) {
-    const x0 = sx[a], y0 = sy[a], x1 = sx[b], y1 = sy[b], x2 = sx[c], y2 = sy[c];
-    const den = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2); if (Math.abs(den) < 1e-9) return;
-    const ys = Math.max(0, Math.floor(Math.min(y0, y1, y2) - 1)), ye = Math.min(199, Math.ceil(Math.max(y0, y1, y2) + 1));
-    const xs = Math.max(0, Math.floor(Math.min(x0, x1, x2) - 1)), xe = Math.min(319, Math.ceil(Math.max(x0, x1, x2) + 1));
-    const ia = a * 4, ib = b * 4, ic = c * 4, id = 1 / den;
-    for (let y = ys; y <= ye; y++) for (let x = xs; x <= xe; x++) {
-      const px = x + 0.5, py = y + 0.5;
-      const c0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) * id, c1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) * id, c2 = 1 - c0 - c1;
-      if (c0 < 0 || c1 < 0 || c2 < 0) continue;
-      const qx = x + 0.75, qy = y + 1;     // attribute sample point (empirical: matches the original's fixed-point plane evaluation best)
-      const l0 = ((y1 - y2) * (qx - x2) + (x2 - x1) * (qy - y2)) * id, l1 = ((y2 - y0) * (qx - x2) + (x0 - x2) * (qy - y2)) * id, l2 = 1 - l0 - l1;
-      const u1 = Math.floor((l0 * at[ia] + l1 * at[ib] + l2 * at[ic]) / 16) & 255, v1 = Math.floor((l0 * at[ia + 1] + l1 * at[ib + 1] + l2 * at[ic + 1]) / 16) & 255;
-      let p = tex[v1 << 8 | u1];
-      if (shd) {
-        const u2 = Math.floor((l0 * at[ia + 2] + l1 * at[ib + 2] + l2 * at[ic + 2]) / 16) & 255, v2 = Math.floor((l0 * at[ia + 3] + l1 * at[ib + 3] + l2 * at[ic + 3]) / 16) & 255;
-        p = shd[tex[v2 << 8 | u2] << 8 | p];
-      }
-      fb[y * 320 + x] = p;
-    }
-  }
   function drawSprite(fb, v) {
     const vv = V[v];
       // sprite (0x324ec): transparent blit, colour key 0, clipped
     const px = POS[v][0], py = POS[v][1];
     for (let y = 0; y < vv.sh; y++) { const Y = py + y; if (Y < 0 || Y >= 200) continue;
       for (let x = 0; x < vv.sw; x++) { const X = px + x; if (X < 0 || X >= 320) continue; const q = vv.spr[y * vv.sw + x]; if (q) fb[Y * 320 + X] = q; } }
+  }
+  const G12 = {};
+  function grid(v) {   // variants 1/2: the 8x8 vertex warped grid as an engine mesh drawn by face function 0x33a82 (= MODE.LIGHTMAP: texel2 = tex[(v2,u2)], pixel = shd[texel2<<8|texel1])
+    if (G12[v]) return G12[v];
+    const sc = new Scene({ width: 320, height: 200, fov: 0x100, near: 0x1600, ambient: 0x70 }), cam = sc.camera = new Node(); cam.setPos(0, 0, -1300); sc.add(cam);
+    const sp = 350, o = 1400, x = new Int16Array(64), y = new Int16Array(64), z = new Int16Array(64), fi = [];
+    for (let j = 0; j < 8; j++) for (let i = 0; i < 8; i++) { x[j * 8 + i] = -o + sp * i; z[j * 8 + i] = -o + sp * j; }
+    for (let j = 0; j < 7; j++) for (let i = 0; i < 7; i++) { const a = j * 8 + i; fi.push(a, a + 1, a + 8, a + 8, a + 1, a + 9); }
+    const m = new Material({ tex: V[v].tex, shade: V[v].shd, lmap: V[v].tex, ubits: 8, vbits: 8 });
+    const mesh = new Mesh({ nv: 64, nf: 98, x, y, z, u: new Uint16Array(64), v: new Uint16Array(64), fi: Int32Array.from(fi), fw: new Uint16Array(98) }, m, 1);
+    mesh.setMapper(MODE.LIGHTMAP); mesh.flags |= 0x100; sc.add(mesh);
+    const rotY = mat3.euler(0, 0.01, 0), cp = [Float64Array.from(V34[3].shM)], cur = Float64Array.from(cp[0]); let curT = 0;   // M(n) = G0 * Ry(0.01)^n accumulated tick by tick like 0x30070 (G0 = start matrix read from the emulator)
+    const matrixAt = (t) => { const k = Math.min(Math.floor(t / 64), cp.length - 1); if (t < curT || Math.floor(curT / 64) < k) { mat3.copy(cur, cp[k]); curT = k * 64; }
+      while (curT < t) { mat3.mul(cur, rotY); curT++; if (curT % 64 === 0 && cp.length === curT / 64) cp.push(Float64Array.from(cur)); } return cur; };
+    return G12[v] = { sc, mesh, matrixAt };
   }
   const pend = {};
   return {
@@ -120,17 +119,9 @@ export default function make(dat) {
       const e2 = N1 + (Math.ceil(146.449 * R - 1e-9) - Math.ceil(136.604 * R - 1e-9));
       const st = per2 ? (nA >= e2 ? { post: 1, m: nA - e2 } : { post: 1, m: nA - E1 }) : (nA >= E1 ? { post: 1, m: nA - E1 } : { post: 0, m: nA });
       warp(st, v);
-      const ang = 0.01 * nA, c = Math.cos(ang), s = Math.sin(ang);
-      for (let r = 0; r < 3; r++) { M[r * 3] = G0[r][0] * c - G0[r][2] * s; M[r * 3 + 1] = G0[r][1]; M[r * 3 + 2] = G0[r][0] * s + G0[r][2] * c; }
-      const sp = v < 3 ? 350 : 700, o = v < 3 ? 1400 : 2800, vv = V[v];
-      for (let j = 0; j < 8; j++) for (let i = 0; i < 8; i++) {
-        const X = -o + sp * i, Z = -o + sp * j, k = j * 8 + i;
-        const x = M[0] * X + M[2] * Z, y = M[3] * X + M[5] * Z, z = M[6] * X + M[8] * Z + 1300;
-        const iz = 1 / Math.max(z, 1e-3); sx[k] = 160 + 256 * x * iz; sy[k] = 100 + 213.3333 * y * iz;
-      }
-      fb.fill(0);
-      for (let j = 0; j < 7; j++) for (let i = 0; i < 7; i++) { const a = j * 8 + i; tri(fb, a, a + 1, a + 8, vv.tex, vv.shd); tri(fb, a + 8, a + 1, a + 9, vv.tex, vv.shd); }
-      drawSprite(fb, v);
+      const g = grid(v); g.mesh.setMatrix(g.matrixAt(nA));
+      for (let k = 0; k < 64; k++) { g.mesh.vu[k] = at[k * 4]; g.mesh.vv[k] = at[k * 4 + 1]; g.mesh.vu2[k] = at[k * 4 + 2]; g.mesh.vv2[k] = at[k * 4 + 3]; }
+      g.sc.clear(fb, 0); g.sc.render(fb); drawSprite(fb, v); return;
     },
   };
 }

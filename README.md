@@ -21,12 +21,12 @@ INSIDE.DAT: `u32 usize` + LZSS (flag byte LSB first; literal = 1; 2-byte match =
 
 ## Faithful vs approximated (honest)
 Bit-exact in palette-index space against the original run in the emulator (0 differing pixels): **logo, intro, water, credits (839/841)**; the six face functions (180/180 recorded triangles).
-Bit-exact (palette-index space, 0 differing pixels over 140+ frames each): **nigga variants 3 and 4** (the lit room box rebuilt with the engine: per-triangle material uv, camera drift, light and shadow quad closed forms).
-Near-exact: **twirl** (except around palette flashes), **flower** (75 % of frames exact, the rest are flash frames), **temple** (sub-pixel rounding on one billboard), nigga variants 1-2 (~96 % of pixels).
+Bit-exact (palette-index space, 0 differing pixels): **nigga, all four variants** (3 and 4: the lit room box rebuilt with the engine, 140+ frames each; 1 and 2: the warped grid is an engine mesh drawn by the LIGHTMAP face function with float32 phase accumulators, every checked frame exact, was ~96 % of pixels).
+Near-exact: **twirl** (except around palette flashes), **flower** (75 % of frames exact, the rest are flash frames), **temple** (x87 extended-precision rounding on one billboard edge, ~1.4 pixels per frame).
 **Sound.** `EYE.AMF` is a 4-channel module with hard L/R panning; the player renders it with libopenmpt's stereo separation at 50 % (`stereoSeparation` in `web/js/main.js`, 100 = panning exactly as written, 0 = mono) so the voices are not stuck in one speaker.
-Approximated: **flight** (mean RGB error ~12/255: ships' env normals recomputed, span rounding, camera/ship path from an emulator-recorded table).
+Approximated: **flight** (driven through the engine's bit-exact mappers and sprite code: 99.7% palette-index match vs the original, MAE 3.4/255 incl. fade-in, 519 frames; remaining: camera/ship path replayed from an emulator-recorded table, small ship env-map highlight residual).
 Data embedded instead of regenerated because they depend on `rand()` history: credits flight path (`creditsdata.js`), flower tunnel shade table, flight height field/paths, temple flare directions, water seed.
-Palette flashes/fades are run by `script.js`/`fade.js` and can be 1-2 frames off the golden run (the golden harness quantises events to 10-tick frames).
+Palette flashes/fades are run by `script.js`/`fade.js`. The "port flashes up to 10 ticks early" seen against `golden.py --k=10` is a harness artefact: with `--k=1` (twirl 149.5 s invert flash) the flash appears on exactly the same tick in the golden run and the port, and the fade curve matches; in scenes whose frame function spins (flower) the golden music clock advances one frame per loop while ISR ticks advance two, so the flash is delayed in the golden run (use `re/golden_tickclock.py`); there the original's own latency is one frame loop (1-2 ticks), within the port's 1-2 ticks.
 
 Figures and 3D: `figures/` (`tools/make_figures.py`), `web/viewer3d.html` (interactive viewer of the `.sro` meshes, `tools/export_meshes.py`).
 
