@@ -26,6 +26,33 @@ export class Billboard extends Node {
   }
 }
 
+/** 0x31878 geometry (everything before the pixel loops).  The x87 code keeps intermediates in registers, but the demo runs with the FPU precision control set to
+ *  DOUBLE (53 bit): the Ax/Ay/W/H the original stores match plain double arithmetic on 2943/2943 calls (an 80-bit model mismatches 1843), so JS doubles in the
+ *  original operation order are exact.  Returns null when nothing is drawn.  Exported for tools/bbcheck.mjs (oracle replay). */
+export function bbGeom(sc, m) {
+  const Zd = m.Z * 0.0078125, nearD = idiv(sc.near, 128);
+  if (nearD > Zd || sc.far < Zd) return null;
+  const F = sc.fx, G = sc.fy, cx16 = sc.cx << 4, cy16 = sc.cy << 4, s1 = m.s1, k = m.k, w = m.w, h = m.h;
+  const invZ = 1 / Zd, Fk = F * 0.0009765625;
+  const Ax = ((m.X * s1) * Fk) * invZ, Ay = (Fk * (s1 * m.Y)) * invZ, W = ((w * k) * F) * invZ, H = ((h * k) * G) * invZ;
+  if (!(W > 0) || !(H > 0)) return null;
+  const Hi = trunc(H), Wt = trunc(W);
+  let top16 = trunc((cy16 + Ay) - H * 0.5); const bot16 = top16 + Hi;
+  if (!Hi || !Wt) return null;
+  const du = (w * 16) / Wt, dv = (16 * h) / Hi;
+  let left16 = trunc((cx16 + Ax) - W * 0.5); const right16 = left16 + Wt;
+  const ymin16 = sc.ymin16, xmin16 = sc.xmin16;
+  let voff = 0, uoff = 0;
+  if (top16 < ymin16) { voff = -((top16 - ymin16) * dv * 0.0625); top16 = ymin16; }
+  if (left16 < xmin16) { uoff = -((left16 - xmin16) * du * 0.0625); left16 = xmin16; }
+  const top = idiv(top16, 16); let bot = idiv(bot16, 16); const left = idiv(left16, 16); let right = idiv(right16, 16);
+  if (right > sc.xmax_) right = sc.xmax_; if (bot > sc.ymax_) bot = sc.ymax_;
+  if (right <= left || top >= bot) return null;
+  const a = 15 - (left16 & 15), b = 15 - (top16 & 15);
+  const U0f = 65536 * ((a * du * 0.0625) + uoff), DUf = du * 65536, V = (b * dv * 0.0625) + voff;
+  return { top, bot, left, right, U0: trunc(U0f), DU: trunc(DUf), V, dv, du, U0f, DUf, Vn: V, dun: du, dvn: dv };
+}
+
 export class CScene extends Scene {
   constructor(o) { super(o); this.far = 0x400000; }
 
@@ -43,28 +70,12 @@ export class CScene extends Scene {
     return it;
   }
 
-  /** 0x31878 (edx = 1: dst = shade[(texel<<8)|dst]; edx = 0: plain copy).  All geometry in 1/16 pixel, texel steps 16.16. */
+  /** 0x31878 (edx = 1: dst = shade[(texel<<8)|dst]; edx = 0: plain copy).  All geometry in 1/16 pixel, texel steps 16.16.
+   *  Geometry: bbGeom above. */
   drawBillboard(fb, m) {
-    const Zd = m.Z * 0.0078125, nearD = idiv(this.near, 128);
-    if (nearD > Zd || this.far < Zd) return;
-    const F = this.fx, G = this.fy, cx16 = this.cx << 4, cy16 = this.cy << 4, s1 = m.s1, k = m.k, w = m.w, h = m.h, tex = m.tex, shd = m.shade, stride = m.stride;
-    const invZ = 1 / Zd, A1 = (m.X * s1) * (F * 0.0009765625), Ay0 = (m.Y * s1) * (F * 0.0009765625);
-    const Ax = A1 * invZ, Ay = Ay0 * invZ, W = ((w * k) * F) * invZ, H = ((h * k) * G) * invZ;
-    if (!(W > 0) || !(H > 0)) return;
-    const Hi = trunc(H), Wt = trunc(W);
-    let top16 = trunc((cy16 + Ay) - H * 0.5); const bot16 = top16 + Hi;
-    const du = (w * 16) / Wt, dv = (h * 16) / Hi;
-    let left16 = trunc((cx16 + Ax) - W * 0.5); const right16 = left16 + Wt;
-    const ymin16 = this.ymin16, xmin16 = this.xmin16;
-    let voff = 0, uoff = 0;
-    if (top16 < ymin16) { voff = 0 - ((top16 - ymin16) * dv) * 0.0625; top16 = ymin16; }
-    if (left16 < xmin16) { uoff = 0 - ((left16 - xmin16) * du) * 0.0625; left16 = xmin16; }
-    const top = idiv(top16, 16); let bot = idiv(bot16, 16); const left = idiv(left16, 16); let right = idiv(right16, 16);
-    if (right > this.xmax_) right = this.xmax_; if (bot > this.ymax_) bot = this.ymax_;
-    if (right <= left || top >= bot) return;
-    const a = 15 - (left16 & 15), b = 15 - (top16 & 15);
-    const U0 = trunc((((a * du) * 0.0625) + uoff) * 65536), DU = trunc(du * 65536);
-    let V = ((b * dv) * 0.0625) + voff;
+    const g = bbGeom(this, m); if (!g) return;
+    const { top, bot, left, right, U0, DU } = g; let { V } = g, dv = g.dv;
+    const tex = m.tex, shd = m.shade, stride = m.stride;
     const pitch = this.pitch, n = right - left, mode = m.mode;
     for (let y = top; y < bot; y++) {
       const row = trunc(V) * stride; let u = U0, o = y * pitch + left;

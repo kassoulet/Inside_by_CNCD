@@ -1,7 +1,7 @@
 # Scene 'tunnel2' = the 'temple' scene (157.45 s .. 182.75 s) - reversed
 
 Port: `web/js/scenes/tunnel2.js` (uses `Billboard`/`CScene` from `web/js/engine3d_credits.js`; script.js got a 1-line `startFlash` hook).
-Fidelity (golden.py 157.451 740 frames, `--k=10`): **488 of 529 frames up to 176 s are bit exact, mean 1.4 differing pixels per frame (of 64000), max 166** (sub-pixel rounding at the edge of one flare billboard);
+Fidelity (golden.py 157.451 740 frames, `--k=10`): **bit exact on every frame from the start of the scene up to the fade-out at 181.04 s (669 of 669 frames, 0 differing pixels; the earlier 'sub-pixel billboard rounding' diagnosis was wrong, see below)**;
 cmp.py RGB MAE over the whole 722 frames = **0.37** (the rest: the two start frames and the 35:48 fade-out, 1 frame early/late).  ~1.5 ms/frame in node.
 It is NOT the 'credits' tunnel: it shares no objects with it (the lead's table said "dark tunnel with flares (credits/smoke.shd ...)" - the files are `temple/*`): a glass temple seen by a camera orbiting in it, three light beams, ten flares.
 
@@ -13,7 +13,7 @@ It is NOT the 'credits' tunnel: it shares no objects with it (the lead's table s
 * three pipes `putki.sro` (15 vertices, 20 faces), SHADEDST (0x32dc8: `dst = shade[(s<<8)|dst]`, no texture) with material 2 (shade = flare.shd + 0x2000), ENV flag set but unused.  Pipe 0 and 1: vertices translated by -vertex[12] (0x2d72c) then scaled (1.5, 1.5, 5.3f) (0x2d6c8, float arguments, truncated), pipe 2 scaled (3, 3, 4.6f) without translation. Positions (0,-150,0), (0,-150,0), (0,100,0), static matrices: Euler(pi/2 + P, Q, 0), Euler(pi/2 - P, -Q, 0), Euler(pi/2, 0, 0).
 * 10 flare billboards (class 0x10481c, draw fn 0x31dc8: shade-table blend), texture flare.raw (stride 0x80, 128 x 104), scale 1.0, size factor 0.25.  Direction vectors from `rand()` at init (0x1fda8: x = rand()%1000-500, y = rand()%300+70, z = rand()%1000-500), table 0x106c78 (doubles); embedded in tunnel2.js.
 * camera node [0x106e74] = child of the pivot node [0x106ecc] (both created by 0x1f900); light node [0x106e5c] (flags 0x80, range 500 -> animated, peak 0x640) at the origin.
-* scene: fov parameter 0xaa (170), near 0x2000, ambient 0, 320x200.  Creation order = draw order for ties: pivot, camera, mesta21, mesta22, mesta23, pipe0..2, flare0..9, light.
+* scene: fov parameter 0xaa (170), near 0x2000, ambient 0, 320x200.  Creation order: pivot, camera, mesta21, mesta22, mesta23, pipe0..2, flare0..9, light.  **Draw order for equal depth keys = REVERSE creation order** (0x317d4 / the face lists are built at the head: the last created node is drawn first; in the port `scene.meshes.reverse()`).
 
 ## Function map (linear addresses)
 | addr | role |
@@ -51,7 +51,8 @@ LAG = 20 = 10 (flip) + 10 (phase of golden.py 157.451: the scene counters start 
 The start flash (0x1c498 before 0x1c364) needs `scene.startFlash = true`, which makes script.js call `f.white()` before `setBase` (1-line edit in the STARTS branch).
 
 ## Approximations / gaps
-* flare direction table embedded; the ~0.002% differing pixels are sub-pixel rounding at the border of one billboard (x87 extended vs double in the 0x31878 size computation).
+* flare direction table embedded.  The ~1.4 differing pixels/frame that used to remain were NOT x87 rounding: they were ties in the depth sort (equal key = trunc(z)/16) between faces/flares, drawn in creation order instead of reverse creation order (additive flares and glass faces do not commute).  Found by hooking 0x31878 in the emulator (tools/bbcheck.mjs replays the recorded inputs/outputs of 2943 calls through `bbGeom`: 0 mismatches; the sequence of drawn flares only differed by swapped tie pairs).
+* **FPU precision control is DOUBLE (53 bit) in the demo** (0x27a78 only raises it to extended around its `frndint`).  The Ax/Ay/W/H doubles stored by 0x31878 match plain JS double arithmetic in the original operation order on 2943/2943 calls, an 80-bit model (BigInt/long double) mismatches 1843 of them.  So no extended-precision emulation is needed anywhere in the engine; this also holds for flightlib.js's SpriteNode and the other 0x31878 users (same function).
 * the dead per-flare matrices, the ping-pong counter and the pipes' ENV uv are not computed.
 * the two first frames (white flash before the first B) differ from the golden run (its screen still holds stale buffers there).
 

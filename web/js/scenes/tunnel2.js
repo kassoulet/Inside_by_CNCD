@@ -36,6 +36,8 @@ export default function make(dat, opt = {}) {
     m._normals(); m._bbox(); return m;
   });
   const fl = FLARES.map(() => { const b = new Billboard({ tex: dat.get('temple/flare.raw'), shade: fshd, stride: 0x80, w: 0x80, h: 0x68, s1: 1.0, k: 0.25, mode: 1 }); scene.add(b); return b; });
+  // equal depth keys: the original draws the LAST created node first (its draw list is built at the head), so reverse the mesh/billboard order (verified: 295/295 frames exact)
+  scene.meshes.reverse();
   const light = new Light(500, 0x640); scene.add(light);                                                       // [0x106e5c]
   const mp5 = mat3.euler(PI2, 0, 0);                                                                           // 0x106c30, static
 

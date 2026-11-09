@@ -28,7 +28,8 @@ export default function make(dat) {
   const EV = [149.526, 151.372, 151.372, 155.372].map(x => 10 * Math.ceil((Math.ceil(x * R - 1e-9) - S0 + 3) / 10) - 10);
   return {
     id: 'twirl', palette,
-    basePalette(t) { let k = 0; for (const x of EV) if (t >= x + PALD) k++; return k ? pals[k % 5] : palette; },
+    // 0x26098 sets the palette in the same call as its flash, i.e. at the script entry itself (exact tick, not the 10-tick frame grid EV that only drives the picture)
+    basePalette(t, seg) { let k = 0; for (const e of seg.events) if (e.fn === '0x26098' && e.tick < t) k++; return k ? pals[k % 5] : palette; },
     render(fb, t) {
       t = Math.max(0, t - LAG);
       if (!T) T = buildT();

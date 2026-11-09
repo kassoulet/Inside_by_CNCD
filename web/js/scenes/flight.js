@@ -1,17 +1,18 @@
 // Scene 'flight': heightfield fly-over with 3 ships and a sun/lens flare (see re/notes_flight.md).
 // Drawn with the engine (engine3d.js): terrain node (19x19 vertices, faces 0x2e264/0x30e5c), 3 ship nodes (ship.sro scaled 0.1, env map uv, face function 0x2edb0), camera node;
-// the camera/ship nodes (int positions + double matrices) are read from the original's run (PATH), the sun and the lens flares are still the fitted sprites.
+// the camera/ship nodes (int positions + double matrices) come from FlightSim (flightlib.js): the original's rand()-driven ship/camera simulation re-derived (0x1ddbc, 0x1e0f8, 0x1e638), stepped from the scene start.
 import { Node, Mesh, Material, FLAG, MODE, parseSRO } from '../engine3d.js';
-import { makeTerrain, fillTerrain, FlightScene, SpriteNode } from '../flightlib.js';
-import { PATH, NF } from '../flightdata.js';
+import { makeTerrain, fillTerrain, FlightScene, SpriteNode, FlightSim } from '../flightlib.js';
+const NF = 563;                       // frames of the scene (5630 ticks)
+const sim = new FlightSim(), rec = (i) => sim.frame(i);   // record i = state at the render of B call i (stepped lazily from the start, cached: seek = lookup / replay)
 const FT = 10;                        // ticks per rendered frame of the path table (original frame function = 10 ticks at the reference speed)
-const LAG = 3.1 + (globalThis.__FDF || 0);   // exact: golden frame g (sceneTick 10g+11) shows the render of path record g-2
+const LAG = 3.1 + (globalThis.__FDF || 0);   // exact: golden frame g (sceneTick 10g+11) shows the render of B call g-2
 const tmp = new Float64Array(48);
-function state(tick) {                // record i = state at the render of iteration i+2; between records linear interpolation (exact at the records)
+function state(tick) {                // record i = state at the render of B call i; between records linear interpolation (exact at the records)
   let x = tick / FT - LAG; x = x < 0 ? 0 : x > NF - 1 ? NF - 1 : x;
-  const i = Math.floor(x), t = x - i, j = Math.min(i + 1, NF - 1);
-  if (t === 0) { for (let k = 0; k < 48; k++) tmp[k] = PATH[i * 48 + k]; return tmp; }
-  for (let k = 0; k < 48; k++) tmp[k] = PATH[i * 48 + k] * (1 - t) + PATH[j * 48 + k] * t;
+  const i = Math.floor(x), t = x - i, j = Math.min(i + 1, NF - 1), a = rec(i), b = rec(j);
+  if (t === 0) { for (let k = 0; k < 48; k++) tmp[k] = a[k]; return tmp; }
+  for (let k = 0; k < 48; k++) tmp[k] = a[k] * (1 - t) + b[k] * t;
   for (let o = 0; o < 4; o++) for (let k = 0; k < 3; k++) tmp[o * 12 + k] = Math.trunc(tmp[o * 12 + k]);
   return tmp;
 }
