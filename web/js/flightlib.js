@@ -95,8 +95,18 @@ function drawSprite(fb, sc, S) {
 // intermediates T*0.12 = 2.99999999999999989 at T = 25 truncates differently and the sim diverges at tick 25).
 const PI2 = 1.5707963268;                                      // the original's own 10-digit constant (0x101662)
 const DT = 17.06666666666667;                                 // [0x1037ec] (tick length measured by the original at start-up)
-// state at the first A call (tick 1) of the reference run (golden.py 98.38): ships (x,y,z) ints from init 0x1d8d0, identity matrices, camera, rand() state
-const INIT = { rand: 845024719, ships: [[12374, 0, 11101], [10954, 2560, 8541], [10028, 5120, 5981]], cam: [14268, 0, 12521] };
+// Start state, DERIVED (re/notes_flight.md "Start state"): init 0x1e948 does srand(0x45eafc) (constant), then 0x1d8d0 / 0x1eb40 draw the ship and camera start from rand():
+// r1,r2 = rand()%15360 twice, ship i: x = r1 + rand()%5120, y = 2560 i, z = r2 - 2560 i; camera = ship0 + (rand()%2560, 0, rand()%2048) in (x, z) order below.
+// The rand state at the first A call (tick 1) is that seed advanced by the rand() calls of the other init/catch-up handlers up to the flight: 1055 in the reference run (golden.py 98.38, a run that
+// starts the demo there; the scene catch-up is deterministic). A run from t=0 reaches the flight with another count (per-frame rand callers: machine/frame-rate dependent).
+const SEED0 = 0x45eafc, CALLS = 1055;
+const INIT = (() => {
+  let s = SEED0; const r = () => { s = (Math.imul(s, 0x41c64e6d) + 0x3039) | 0; return (s >>> 16) & 0x7fff; };
+  const r1 = r() % 15360, r2 = r() % 15360, x = [0, 1, 2].map(() => r1 + r() % 5120);
+  const cx = r() % 2048, cz = r() % 2560; r(); r();   // 0x1eb6a: %0x800, 0x1eb8b: %0xa00, then 2 more draws (0x1ebcd/0x1ebee: second object 0x105fe0, unused here)
+  for (let i = 9; i < CALLS; i++) r();
+  return { rand: s, ships: x.map((px, i) => [px, 2560 * i, r2 - 2560 * i]), cam: [x[0] + cz, 0, r2 + cx] };
+})();
 
 export class FlightSim {
   constructor() {
