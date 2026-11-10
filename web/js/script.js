@@ -55,6 +55,7 @@ export class Timeline {
   _lag(e) { return STARTS[e.fn] ? 0 : e.lag || (this.scenes[this.segs[this.seg] && this.segs[this.seg].id] || {}).scriptLag || 0; }
   _start(sc) {
     const f = this.fade;
+    if (sc && sc.startInvert) f.invert(20);   // flight: the golden run shows the palette jump to 63-oldbase (invert flash of the previous scene's base) when it starts, then fade to the new map.pal
     if (sc && sc.startFlash) f.white();   // start handler 0x2061c (tunnel2) begins with 0x1c498 (white flash), then sets its palette
     if (sc && sc.palette) { f.setBase(sc.palette); this.lastBase = sc.palette; if (sc.startFade) f.fadeTo(1, sc.startFade); }   // scene.startFade = ticks of the 0x1c4ac(1.0,n) fade-up its start handler does (flight: 0x3c)
   }
@@ -70,7 +71,7 @@ export class Timeline {
       if (op === 'white' || FLASHES.has(e.fn)) f.white(); else if (op === 'invert') f.invert(20); else if (op === 'black') f.black(40);
       else if (STARTS[e.fn]) {
         this.seg++; const sc = this.scenes[STARTS[e.fn]];
-        if (sc && sc.scriptLag) this.pend = { tick: e.tick + sc.scriptLag, sc }; else this._start(sc);   // the scene's start ops (flash, palette) run in its own late poll too
+        if (sc && (sc.scriptLag || sc.startLag)) this.pend = { tick: e.tick + (sc.scriptLag || sc.startLag), sc }; else this._start(sc);   // the scene's start ops (flash, palette) run in its own late poll too
       }
     }
     f.tick();                                           // ISR: palette step

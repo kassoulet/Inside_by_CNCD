@@ -1,9 +1,8 @@
 # Scene 'credits' (29.46 s .. 59 s) - reversed
 
 Port: `web/js/scenes/credits.js` (+ `web/js/creditsdata.js` = the flight-path table, `web/js/engine3d_credits.js` = extensions of the engine, see "To merge").
-Fidelity (golden.py 29.459 900 frames, `--k=10`, compared with the real code in the emulator): **839 of 841 frames have 0 differing palette indices** up to 58.9 s (the 2 others are the first two
-start-up frames, where the original shows half drawn page buffers).  cmp.py RGB MAE over the whole scene = 3.5 (median 0.000): the only non-zero frames are the white flashes / fades, which are
-script.js business and come ~2 frames (20 ticks) late in the golden run (see "Timing").  ~1 ms/frame in node.
+Fidelity (golden.py 29.459 900 frames, `--k=10`, vs `render_node.mjs 29.459 900 10`, matched by display tick; re-measured, the scene is golden frames 0..842 = up to 58.999 s, frames 843+ belong to the next scene 'nigga'): **842 of 843 frames have 0 differing palette indices**.  The one exception is golden frame 2 (t = 29.564 s, tick 8447, scene tick 30): 53118 differing pixels, see "The one differing frame".  (Older note said 839/841: frames 0 and 1 are black in the golden run and in JS, so they count as exact on indices; they only differ in RGB through the palette, below.)
+cmp.py RGB over the 843 scene frames: mean MAE 3.41 (3.25 without frame 2), median 0.000, 36 non-zero frames: the white flashes / fades (script.js business, ~2 frames / 20 ticks late in the golden run, see "Timing") and frames 0..2 (palette ramp of the start, MAE 82 / 124 / 137).  ~1 ms/frame in node.
 
 ## What is on screen
 A flight through a procedural tube.  The tube is NOT a static object: `tuubi.sro` (11 rings x 12 vertices = 132 vertices, 240 faces, scale 7.0) is re-skinned every frame from the 'credits flight path' table
@@ -59,8 +58,11 @@ that drives the script for this scene (`golden.py 29.459`; with 29.5 the offset 
 
 ## Approximations / gaps
 * the flight path table (rand() based) is embedded as data (path generator documented, not re-implemented); everything else is computed.
-* x87 80-bit intermediates are computed in doubles; 839/841 frames are still bit exact.
-* first two frames of the scene (half drawn buffers in the golden run).
+* x87 80-bit intermediates are computed in doubles; 842/843 frames are still bit exact.
+* golden frame 2 (scene tick 30), see below.
+
+## The one differing frame
+Golden frame 2 (scene tick 30) is not a credits image: it shows 256 colours, 53118 non-zero pixels, and is the flower/logo picture of the previous scene (JS logo frame at the start tick has 53008 non-zero pixels and differs from it by only 9152 pixels: the logo animation advanced a little).  It is the stale video page still on screen (display lag / page flip not yet done, the same family as flight's 2 black pre-render frames) while the credits palette is already 63.  The first credits image appears in golden frame 3 (tick 40) and is exact from there to 58.9 s.  JS shows black at scene tick 30 (credits renders nothing before its first flip).  Not a credits bug; reproducing it would need the logo scene rendered 30 ticks after its end in script.js, so it is left alone (script.js/fade.js are being worked on elsewhere).
 
 ## To merge into engine3d.js (everything is in `engine3d_credits.js`, engine3d.js untouched)
 * `Billboard` node + `CScene._object/drawBillboard` = node class 0x10481c (flights' sun/flares and tunnel2 use it too): projection (0x317d4: key = trunc(z)/16, z = float32 of camera z*128), draw 0x31878 in 1/16 pixel units, mode 1 (0x31dc8): `fb = shade[(texel<<8)|fb]`, mode 0 (0x31dbc): copy; no colour key.
@@ -97,4 +99,4 @@ that drives the script for this scene (`golden.py 29.459`; with 29.5 the offset 
 ```
 
 ## Equal-depth tie order (tested, negative)
-tunnel2 became bit-exact once `scene.meshes.reverse()` fixed the draw order of equal depth keys (re/notes_tunnel2.md). Same test here (reverse after the 12 smoke billboards are added), golden.py 29.459 900 --k=10 vs render_node, palette indices: 842 exact / 1 differing frame (53118 pixels) both before and after, identical pixel counts. Smoke billboards never tie in a way that shows, so the order is left as is (no change). The remaining differing frame is a start-up frame (half drawn buffers in the golden run).
+tunnel2 became bit-exact once `scene.meshes.reverse()` fixed the draw order of equal depth keys (re/notes_tunnel2.md). Same test here (reverse after the 12 smoke billboards are added), golden.py 29.459 900 --k=10 vs render_node, palette indices: 842 exact / 1 differing frame (53118 pixels) both before and after, identical pixel counts. Smoke billboards never tie in a way that shows, so the order is left as is (no change). The remaining differing frame is golden frame 2: stale logo page still displayed (see "The one differing frame"), not half drawn buffers as first written.
