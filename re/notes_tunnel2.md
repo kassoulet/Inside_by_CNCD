@@ -2,7 +2,7 @@
 
 Port: `web/js/scenes/tunnel2.js` (uses `Billboard`/`CScene` from `web/js/engine3d_credits.js`; script.js got a 1-line `startFlash` hook).
 Fidelity (golden.py 157.451 740 frames, `--k=10`): **bit exact on every frame from the start of the scene up to the fade-out at 181.04 s (669 of 669 frames, 0 differing pixels; the earlier 'sub-pixel billboard rounding' diagnosis was wrong, see below)**;
-cmp.py RGB MAE over the whole 722 frames = **0.27** (was 0.37 before the fade-out fix) (the rest: the two start frames, where the golden palette flash comes ~10 ticks later than ours).  ~1.5 ms/frame in node.
+cmp.py RGB MAE over the whole 722 frames = **0.27** (was 0.37 before the fade-out fix) (was 0.27 before the start-flash deferral; now 0.04 over 723 frames, the two start frames are 0 differing pixels too).  ~1.5 ms/frame in node.
 It is NOT the 'credits' tunnel: it shares no objects with it (the lead's table said "dark tunnel with flares (credits/smoke.shd ...)" - the files are `temple/*`): a glass temple seen by a camera orbiting in it, three light beams, ten flares.
 
 ## Files / objects
@@ -54,7 +54,7 @@ The start flash (0x1c498 before 0x1c364) needs `scene.startFlash = true`, which 
 * flare direction table embedded.  The ~1.4 differing pixels/frame that used to remain were NOT x87 rounding: they were ties in the depth sort (equal key = trunc(z)/16) between faces/flares, drawn in creation order instead of reverse creation order (additive flares and glass faces do not commute).  Found by hooking 0x31878 in the emulator (tools/bbcheck.mjs replays the recorded inputs/outputs of 2943 calls through `bbGeom`: 0 mismatches; the sequence of drawn flares only differed by swapped tie pairs).
 * **FPU precision control is DOUBLE (53 bit) in the demo** (0x27a78 only raises it to extended around its `frndint`).  The Ax/Ay/W/H doubles stored by 0x31878 match plain JS double arithmetic in the original operation order on 2943/2943 calls, an 80-bit model (BigInt/long double) mismatches 1843 of them.  So no extended-precision emulation is needed anywhere in the engine; this also holds for flightlib.js's SpriteNode and the other 0x31878 users (same function).
 * the dead per-flare matrices, the ping-pong counter and the pipes' ENV uv are not computed.
-* the two first frames (white flash before the first B) differ from the golden run (its screen still holds stale buffers there).
+* the two first frames: were MAE 80 (our start flash came ~10 ticks before the golden one); fixed by deferring the whole start (flash + palette) and the entries sharing its tick (white 0x1c498, 0x26738) by `scriptLag` (script.js `pend`/`_start`/`e.lag`): `golden.py 157.451 740 --k=10` vs render_node: all 723 frames now 0 differing pixels (MEAN MAE 0.04, residual = fade-out only).  Cross-check with a golden started earlier (155.0, so no catch-up): palettes 0 differing bytes over ticks 44900..45300.
 
 ## Interesting asm
 1. **Double constants passed through the stack with `push hi; push lo`** (0x1ff1e..0x1ff42): the Euler helper 0x305f4 takes three doubles on the stack; the compiler builds the 0.01 rad/tick with two immediate pushes and leaves the zeros for x and z:

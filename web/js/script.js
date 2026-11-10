@@ -38,6 +38,9 @@ export class Timeline {
       }
     }
     for (const s of this.segs) s.events = s.events.filter(ev => ev.tick >= 0);
+    // entries listed just before a lagging scene's start entry at the same tick (tunnel2: white 0x1c498, 0x26738) are executed by the same late poll: they get the lag too
+    for (let i = this.entries.length - 1, lag = 0; i >= 0; i--) { const e = this.entries[i], sc = this.scenes[STARTS[e.fn]]; if (sc && sc.scriptLag) lag = sc.scriptLag; else if (i + 1 < this.entries.length && this.entries[i + 1].tick !== e.tick) lag = 0; if (!STARTS[e.fn] && lag) e.lag = lag; }
+    this.entries.sort((x, y) => x.tick - y.tick || !!x.lag - !!y.lag || x.i - y.i);   // the start entry must fire first (the loop is sequential): its late ops, then the lagged ones
     this.ckpt = [];
     this.reset();
   }
@@ -46,22 +49,28 @@ export class Timeline {
   spd(sg) { return (this.speed || 1) * (sg && (sg.id === 'intro' || sg.id === 'water') ? 2 : 1); }   // intro and water: twice faster (user request, not the DOSBox fit)
   setSpeed(v) { this.speed = v; this._sc = new Map(); this.reset(); }
   _scaled(sg) { const s = this.spd(sg); if (s === 1) return sg; let o = this._sc && this._sc.get(sg); if (!o) { o = Object.assign({}, sg, { events: sg.events.map(e => Object.assign({}, e, { tick: e.tick * s })) }); (this._sc = this._sc || new Map()).set(sg, o); } return o; }
-  reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this._boot(); }
+  reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this.pend = null; this._boot(); }
   _boot() { /* intro init (0x1f811 / 0x1f81f): base = intro palette, cur = black, fade up over 0x78 ticks */
     const s0 = this.scenes.intro; if (s0 && s0.palette) { this.fade.setBase(s0.palette); this.lastBase = s0.palette; this.fade.fadeTo(1, 0x78); } }
+  _lag(e) { return STARTS[e.fn] ? 0 : e.lag || (this.scenes[this.segs[this.seg] && this.segs[this.seg].id] || {}).scriptLag || 0; }
+  _start(sc) {
+    const f = this.fade;
+    if (sc && sc.startFlash) f.white();   // start handler 0x2061c (tunnel2) begins with 0x1c498 (white flash), then sets its palette
+    if (sc && sc.palette) { f.setBase(sc.palette); this.lastBase = sc.palette; if (sc.startFade) f.fadeTo(1, sc.startFade); }   // scene.startFade = ticks of the 0x1c4ac(1.0,n) fade-up its start handler does (flight: 0x3c)
+  }
   _step() {
     const k = ++this.k, f = this.fade;
     // original loop order per iteration: [tick ISR: palette step + present] -> frame function -> script (fires entries due, effect seen from the next iteration)
     // so entries with tick < k have fired before this iteration's ISR
     // tunnel2 (0x2061c) runs its script poll one 10-tick frame late (golden: its 0x1c438 fade-out starts exactly 10 ticks after the generic firing tick), so non-start entries are delayed by sc.scriptLag
-    while (this.ei < this.entries.length && this.entries[this.ei].tick + (STARTS[this.entries[this.ei].fn] ? 0 : (this.scenes[this.segs[this.seg] && this.segs[this.seg].id] || {}).scriptLag || 0) < k) {
+    if (this.pend && this.pend.tick < k) { this._start(this.pend.sc); this.pend = null; }
+    while (this.ei < this.entries.length && this.entries[this.ei].tick + this._lag(this.entries[this.ei]) < k) {
       const e = this.entries[this.ei++];
       const op = OPS[e.fn];
       if (op === 'white' || FLASHES.has(e.fn)) f.white(); else if (op === 'invert') f.invert(20); else if (op === 'black') f.black(40);
       else if (STARTS[e.fn]) {
         this.seg++; const sc = this.scenes[STARTS[e.fn]];
-        if (sc && sc.startFlash) f.white();   // start handler 0x2061c (tunnel2) begins with 0x1c498 (white flash), then sets its palette
-        if (sc && sc.palette) { f.setBase(sc.palette); this.lastBase = sc.palette; if (sc.startFade) f.fadeTo(1, sc.startFade); }   // scene.startFade = ticks of the 0x1c4ac(1.0,n) fade-up its start handler does (flight: 0x3c)
+        if (sc && sc.scriptLag) this.pend = { tick: e.tick + sc.scriptLag, sc }; else this._start(sc);   // the scene's start ops (flash, palette) run in its own late poll too
       }
     }
     f.tick();                                           // ISR: palette step
@@ -72,9 +81,9 @@ export class Timeline {
   at(k) {
     if (k < this.k) { // restore nearest checkpoint
       let c = null; for (const x of this.ckpt) if (x.k <= k) c = x;
-      if (c) { this.k = c.k; this.ei = c.ei; this.seg = c.seg; this.lastBase = c.lastBase; this.fade = c.fade.clone(); } else this.reset();
+      if (c) { this.k = c.k; this.ei = c.ei; this.seg = c.seg; this.lastBase = c.lastBase; this.pend = c.pend; this.fade = c.fade.clone(); } else this.reset();
     }
-    while (this.k < k) { this._step(); if (this.k % 1024 === 0 && !this.ckpt.some(x => x.k === this.k)) this.ckpt.push({ k: this.k, ei: this.ei, seg: this.seg, lastBase: this.lastBase, fade: this.fade.clone() }); }
+    while (this.k < k) { this._step(); if (this.k % 1024 === 0 && !this.ckpt.some(x => x.k === this.k)) this.ckpt.push({ k: this.k, ei: this.ei, seg: this.seg, lastBase: this.lastBase, pend: this.pend, fade: this.fade.clone() }); }
     const sg = this.segs[this.seg] || null;
     return { seg: sg ? this._scaled(sg) : null, sceneTick: sg ? Math.floor((k - sg.start) * this.spd(sg)) : 0, pal: this.fade.cur, ended: k >= this.endTick };
   }

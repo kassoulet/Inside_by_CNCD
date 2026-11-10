@@ -1,5 +1,5 @@
 // Scene 'flight': heightfield fly-over with 3 ships and a sun/lens flare (see re/notes_flight.md).
-// Drawn with the engine (engine3d.js): terrain node (19x19 vertices, faces 0x2e264/0x30e5c), 3 ship nodes (ship.sro scaled 0.1, env map uv, face function 0x2edb0), camera node;
+// Drawn with the engine (engine3d.js): terrain node (19x19 vertices, faces 0x2e264/0x30e5c), 3 ship nodes (ship.sro scaled 0x1999/65536, env map uv, face function 0x2edb0), camera node;
 // the camera/ship nodes (int positions + double matrices) come from FlightSim (flightlib.js): the original's rand()-driven ship/camera simulation re-derived (0x1ddbc, 0x1e0f8, 0x1e638), stepped from the scene start.
 import { Node, Mesh, Material, FLAG, MODE, parseSRO } from '../engine3d.js';
 import { makeTerrain, fillTerrain, FlightScene, SpriteNode, FlightSim } from '../flightlib.js';
@@ -9,7 +9,7 @@ const FT = 10;                        // ticks per rendered frame of the path ta
 const LAG = 3.1 + (globalThis.__FDF || 0);   // exact: golden frame g (sceneTick 10g+11) shows the render of B call g-2
 const tmp = new Float64Array(48);
 function state(tick) {                // record i = state at the render of B call i; between records linear interpolation (exact at the records)
-  let x = tick / FT - LAG; x = x < 0 ? 0 : x > NF - 1 ? NF - 1 : x;
+  let x = (tick - FT * LAG) / FT; x = x < 0 ? 0 : x > NF - 1 ? NF - 1 : x;
   const i = Math.floor(x), t = x - i, j = Math.min(i + 1, NF - 1), a = rec(i), b = rec(j);
   if (t === 0) { for (let k = 0; k < 48; k++) tmp[k] = a[k]; return tmp; }
   for (let k = 0; k < 48; k++) tmp[k] = a[k] * (1 - t) + b[k] * t;
@@ -28,13 +28,14 @@ export default function make(dat) {
   const flares = FL.map(([li, w, h, k]) => new SpriteNode(L[li], w, h, k, 64, 0x9c000000 | 0, 1, fshd));
   const sun = new SpriteNode(sunTex, 128, 128, 1, 70, 0, 0, null);
   const ships = [];
-  for (let k = 0; k < 3; k++) { const m = new Mesh(sro, env, 0.1); m.flags = FLAG.ENV_UV_N2; m.setMapper(MODE.TEX); ships.push(m); }
+  for (let k = 0; k < 3; k++) { const m = new Mesh(sro, env, 0x1999 / 65536); m.flags = FLAG.ENV_UV_N2; m.setMapper(MODE.TEX); ships.push(m); }
   for (let k = 7; k >= 0; k--) scene.add(flares[k]);                              // node list order of the original (the list is built by prepending: last created first)
   scene.add(sun); scene.add(ships[2]); scene.add(ships[1]); scene.add(ships[0]);   // 0x1515e20, 0x150d9d0, 0x1505580
   const terr = makeTerrain(dat.get('flight/map.raw'), dat.get('flight/map.shd'), dat.get('flight/map.fog')); scene.add(terr);
   return {
     id: 'flight', palette: pal, startFade: 0x3c, scene,
     render(fb, tick, rt) {
+      if (tick < 10 * LAG) { fb.fill(0); return; }   // the first two displayed frames precede the first render of B (display lag): the original's screen is still black (index 0)
       const p = state(tick);
       fb.fill(221);
       // sun node = ship 0 + (-143360, -20480 absolute, 0); flares (same position) are shown only when the sun is within the screen +-12 px (0x1e4d0)
