@@ -33,7 +33,7 @@ export default function make(dat) {
   scene.add(sun); scene.add(ships[2]); scene.add(ships[1]); scene.add(ships[0]);   // 0x1515e20, 0x150d9d0, 0x1505580
   const terr = makeTerrain(dat.get('flight/map.raw'), dat.get('flight/map.shd'), dat.get('flight/map.fog')); scene.add(terr);
   return {
-    id: 'flight', palette: pal, startFade: 0x3c, startInvert: true, startLag: 11, scene,
+    id: 'flight', palette: pal, startFade: 0x3c, startInvert: true, startLag: 11, endLag: 15, scene,
     render(fb, tick, rt) {
       if (tick < 10 * LAG) { fb.fill(0); return; }   // the first two displayed frames precede the first render of B (display lag): the original's screen is still black (index 0)
       const p = state(tick);

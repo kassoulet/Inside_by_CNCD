@@ -117,7 +117,7 @@ export default function make(dat) {
   }
 
   return {
-    id: 'credits', palette: pal, scene, tube, ball, cam, frame,
+    id: 'credits', scriptQuant: 10, scriptLag: 10, palette: pal, scene, tube, ball, cam, frame,
     render(fb, tick, rt) {
       const evs = (rt && rt.events) || [];
       const e = evs.find(x => x.fn === '0x21f10'); if (e) E = q(e.tick);

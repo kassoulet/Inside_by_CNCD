@@ -52,7 +52,14 @@ export class Timeline {
   reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this.pend = null; this._boot(); }
   _boot() { /* intro init (0x1f811 / 0x1f81f): base = intro palette, cur = black, fade up over 0x78 ticks */
     const s0 = this.scenes.intro; if (s0 && s0.palette) { this.fade.setBase(s0.palette); this.lastBase = s0.palette; this.fade.fadeTo(1, 0x78); } }
-  _lag(e) { return STARTS[e.fn] ? 0 : e.lag || (this.scenes[this.segs[this.seg] && this.segs[this.seg].id] || {}).scriptLag || 0; }
+  // endLag (flight): the golden run (113.99 s, 600 frames) shows its end fade-out (0x1c438) and the next scene's start (white flash + palette) 15 ticks after the generic firing tick;
+  // so the entries fired while flight is the current segment (its own events AND the start of the following scene) are late by endLag
+  _lag(e) {
+    const sg = this.segs[this.seg], cur = this.scenes[sg && sg.id] || {};
+    // scene.scriptQuant = n: the scene's loop polls the script once per n-tick frame (the golden run's 10-tick main loop), so entries inside the segment fire at the next poll boundary (segment start + n*j) plus one frame (the effect shows one flip later, measured against the golden run)
+    if (!STARTS[e.fn] && cur.scriptQuant) { if (!(e.tick >= sg.start && e.tick < sg.end)) return e.lag || cur.endLag || 0; return (cur.scriptQuant - (e.tick - sg.start) % cur.scriptQuant) % cur.scriptQuant + cur.scriptQuant; }
+    return STARTS[e.fn] ? cur.endLag || 0 : e.lag || cur.scriptLag || cur.endLag || 0;
+  }
   _start(sc) {
     const f = this.fade;
     if (sc && sc.startInvert) f.invert(20);   // flight: the golden run shows the palette jump to 63-oldbase (invert flash of the previous scene's base) when it starts, then fade to the new map.pal

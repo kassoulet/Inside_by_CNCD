@@ -2,7 +2,7 @@
 
 Port: `web/js/scenes/credits.js` (+ `web/js/creditsdata.js` = the flight-path table, `web/js/engine3d_credits.js` = extensions of the engine, see "To merge").
 Fidelity (golden.py 29.459 900 frames, `--k=10`, vs `render_node.mjs 29.459 900 10`, matched by display tick; re-measured, the scene is golden frames 0..842 = up to 58.999 s, frames 843+ belong to the next scene 'nigga'): **842 of 843 frames have 0 differing palette indices**.  The one exception is golden frame 2 (t = 29.564 s, tick 8447, scene tick 30): 53118 differing pixels, see "The one differing frame".  (Older note said 839/841: frames 0 and 1 are black in the golden run and in JS, so they count as exact on indices; they only differ in RGB through the palette, below.)
-cmp.py RGB over the 843 scene frames: mean MAE 3.41 (3.25 without frame 2), median 0.000, 36 non-zero frames: the white flashes / fades (script.js business, ~2 frames / 20 ticks late in the golden run, see "Timing") and frames 0..2 (palette ramp of the start, MAE 82 / 124 / 137).  ~1 ms/frame in node.
+cmp.py RGB over the 843 scene frames: mean MAE **0.21** (was 3.41), 2 non-zero frames (golden frame 1: MAE 43, frame 2: 137, the stale previous-scene page, see below); everything else, including every white flash / fade, has 0 differing palette DAC values (was 36 non-zero frames, 29 of them flash/fade frames 1-2 frames late: palette DAC mismatches in 29 of 843 frames before the fix, 3 after - frames 0-2, which are an artifact of the golden run starting mid-demo: starting golden at 28.9 s shows the same frames 0/1 white/black quirk before the scene).  ~1 ms/frame in node.
 
 ## What is on screen
 A flight through a procedural tube.  The tube is NOT a static object: `tuubi.sro` (11 rings x 12 vertices = 132 vertices, 240 faces, scale 7.0) is re-skinned every frame from the 'credits flight path' table
@@ -54,7 +54,14 @@ The effect of the script flag is seen from the *next main-loop iteration* (scrip
 ## Timing (important for anybody comparing with golden.py)
 Frame function B at scene tick T (T = 10, 20, ...; [0x1058c8]) renders what the screen shows one frame later, and the golden run's scene counters ([0x1058c8]) start 20 ticks after the music clock
 that drives the script for this scene (`golden.py 29.459`; with 29.5 the offset is 12 ticks more because JS ticks are counted from the exact trigger tick 8417 = 29.4585 s).  The port uses
-`LAG = 30` = 10 (flip) + 20 (golden catch-up phase) and `state(T) with T = tick - 30`; the credit sprite / ball flag use the quantised event ticks.  Flash/fade frames (script.js) therefore differ by ~2 frames from the golden.
+`LAG = 30` = 10 (flip) + 20 (golden catch-up phase) and `state(T) with T = tick - 30`; the credit sprite / ball flag use the quantised event ticks.
+**Pairing**: golden frame i (meta tick_total 10(i+1)) matches JS frame i+1 of `render_node.mjs 29.459 N 10` (cmp.py does this); comparing i with i is off by one frame and is misleading for palettes.
+**Palette events (script.js `scriptQuant` / `scriptLag`, set in credits.js)**: the golden main loop polls the script table once per 10-tick frame, and a fade/flash fired by a poll shows one flip later.  Measured from golden per-frame DAC data: every
+script entry inside the credits segment (white 6:32, the 0x21f1c flashes, 0x1c498 at 9:48, inverts 10:32 / 11:32, white 11:00, black fade 11:48) fires at the next poll boundary (segment start + 10 j) **plus 10 ticks**
+(lag = (10 - (tick - start) mod 10) mod 10 + 10, e.g. 9143 -> 9157, 9846 -> 9857).  The entries listed before the start handler at the start tick (white, 0x1f184) and the start handler's own palette/flash are 10 ticks late too (`scriptLag: 10`; the second white
+listed after the start entry gets the quantised lag 10).  Entries at the segment end (16856: stop + next scene) are untouched.  Before: flashes fired exactly on the music row, 4..14 ticks early -> 29 flash/fade frames differing (DAC up to 58); after: 0.
+Note this is quantisation to the golden run's 10-tick loop; the real original polls once per rendered frame, so the true lag depends on the machine's frame rate (same caveat as the other scenes' lags).
+Whole-demo check (md5 of palette + scene id per tick, `palall.mjs`): only the credits segment hash changed, all other scenes identical.
 
 ## Approximations / gaps
 * the flight path table (rand() based) is embedded as data (path generator documented, not re-implemented); everything else is computed.
