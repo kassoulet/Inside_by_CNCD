@@ -115,9 +115,30 @@ addEventListener('keydown', e => {
   else if (k === 'f' || k === 'F') $('fs').click();
   else if (k === 'm' || k === 'M') $('mute').click();
   else if (k === 'd' || k === 'D') { dbg = !dbg; lastTick = -1; }
+  else if (k === 'c' || k === 'C') $('crt').click();
   else if (k === 'p' || k === 'P') canvas.classList.toggle('smooth');
   else if (k >= '1' && k <= '9') { const s = tl.segs[+k - 1]; if (s) seek(s.start / TICK_HZ); }
 });
-document.addEventListener('fullscreenchange', () => { });
+// CRT scanlines: display only. The overlay period must be a whole number k of device pixels per source row
+// (k = floor(available device px / 200)), so the canvas is sized to k*200 device px high (4:3) while on.
+const SRC_ROWS = 200;
+let crtOn = false; try { crtOn = localStorage.getItem('inside-crt') === '1'; } catch (e) {}
+function layoutCrt() {
+  const st = $('stage'), sc = $('scan'), dpr = devicePixelRatio || 1;
+  const k = Math.floor(Math.min(st.clientHeight, st.clientWidth * 3 / 4) * dpr / SRC_ROWS);
+  const ok = k >= 2;
+  $('crt').checked = crtOn; $('crt').disabled = !ok; $('crtl').classList.toggle('off', !ok);
+  $('crtl').title = ok ? 'CRT scanlines (C)' : 'CRT scanlines unavailable: window too small (needs at least 2 device pixels per source row)';
+  const on = crtOn && ok, hDev = k * SRC_ROWS, wDev = Math.round(hDev * 4 / 3);
+  // box snapped to whole device pixels (else bands land on half pixels); the overlay is laid out in device px
+  // and scaled by 1/dpr, so its k-px tiles stay exact (fractional CSS tile sizes drift: Chrome rounds to 1/64 px).
+  const r = st.getBoundingClientRect(), L = on ? Math.round((r.left + (r.width - wDev / dpr) / 2) * dpr) / dpr - r.left : 0, T = on ? Math.round((r.top + (r.height - hDev / dpr) / 2) * dpr) / dpr - r.top : 0;
+  canvas.style.cssText = on ? `position:absolute;left:${L}px;top:${T}px;width:${wDev / dpr}px;height:${hDev / dpr}px` : '';
+  sc.hidden = !on; sc.style.cssText = on ? `inset:auto;margin:0;left:${L}px;top:${T}px;width:${wDev}px;height:${hDev}px;transform:scale(${1 / dpr});transform-origin:0 0;background-size:100% 100%,100% ${k}px` : '';
+}
+$('crt').onchange = e => { crtOn = e.target.checked; try { localStorage.setItem('inside-crt', crtOn ? '1' : '0'); } catch (er) {} layoutCrt(); e.target.blur(); };
+addEventListener('resize', layoutCrt); document.addEventListener('fullscreenchange', layoutCrt);
+(function watchDpr() { const m = matchMedia('(resolution:' + devicePixelRatio + 'dppx)'); m.addEventListener('change', () => { layoutCrt(); watchDpr(); }, { once: true }); })();
+layoutCrt();
 init().catch(e => { $('status').textContent = 'init failed: ' + e.message; console.error(e); });
 window.__inside = { seek, play, pause, nowT, get tl() { return tl; }, get scenes() { return scenes; }, draw, fb };

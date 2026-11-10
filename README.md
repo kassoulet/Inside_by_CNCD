@@ -6,7 +6,8 @@ cd web && python3 -m http.server 8000      # http://localhost:8000/  (click / Sp
 ```
 Player: the real 320x200 mode-13h index buffer, stretched to a **4:3** display box (the original's pixels are not square), music `EYE.AMF` through libopenmpt (`web/vendor`),
 play/pause, a **seek bar that works anywhere** (the whole demo is a function of the music position: the original's script table is keyed on AMF order/row, and the scenes are pure functions
-of the tick, so seeking = set the module position and re-render), scene jump list, fullscreen. Keys: Space, Left/Right (5 s; Shift 1 s; Ctrl 30 s), `,` `.` tick-step when paused, 1-9 scene, Home/End, F, M, P, D.
+of the tick, so seeking = set the module position and re-render), scene jump list, fullscreen. Keys: Space, Left/Right (5 s; Shift 1 s; Ctrl 30 s), `,` `.` tick-step when paused, 1-9 scene, Home/End, F, M, P, D, C.
+**CRT option** (checkbox / `C`, remembered, default off): a CSS-only scanline overlay (one soft dark band per source row + faint vignette), display only. To avoid moire the picture is then sized to a whole number k of device pixels per source row (k = floor(available height / 200), 4:3 kept); unavailable when k < 2 (small window).
 Write-ups: `web/doc.html?f=WRITEUP-asm.md` and `?f=WRITEUP-effects.md` (the sources are `WRITEUP-asm.md`, `WRITEUP-effects.md` next to this file).
 
 ## What is here

@@ -15,6 +15,7 @@
 <main>
   <div id="stage" class="stage">
     <canvas id="screen" width="320" height="200" aria-label="Demo output, 320x200 mode 13h displayed at 4:3"></canvas>
+    <div id="scan" class="scan" hidden></div>
     <button id="big" class="big" aria-label="Play">&#9654;</button>
     <div id="msg" class="msg" role="status"></div>
   </div>
@@ -28,9 +29,10 @@
     <input id="vol" type="range" min="0" max="100" value="80" aria-label="Volume">
     <select id="jump" title="Jump to scene (1-9)"></select>
     <select id="speed" title="Animation speed inside the scenes (the music and the scene changes stay in sync)"></select>
+    <label class="crt" id="crtl" title="CRT scanlines (C)"><input id="crt" type="checkbox"> CRT</label>
     <button id="fs" title="Fullscreen (F)">&#9974;</button>
   </div>
-  <p class="keys"><b>Space</b> play/pause &middot; <b>&larr; &rarr;</b> &plusmn;5 s (<b>Shift</b> &plusmn;1 s, <b>Ctrl</b> &plusmn;30 s) &middot; <b>, .</b> step one tick (1/52 s) when paused &middot; <b>1-9</b> scene &middot; <b>Home/End</b> &middot; <b>F</b> fullscreen &middot; <b>M</b> mute &middot; <b>P</b> pixel-perfect / smooth &middot; <b>D</b> debug overlay</p>
+  <p class="keys"><b>Space</b> play/pause &middot; <b>&larr; &rarr;</b> &plusmn;5 s (<b>Shift</b> &plusmn;1 s, <b>Ctrl</b> &plusmn;30 s) &middot; <b>, .</b> step one tick (1/52 s) when paused &middot; <b>1-9</b> scene &middot; <b>Home/End</b> &middot; <b>F</b> fullscreen &middot; <b>M</b> mute &middot; <b>P</b> pixel-perfect / smooth &middot; <b>C</b> CRT scanlines &middot; <b>D</b> debug overlay</p>
   <section class="about">
     <p>The original ran in VGA mode 13h (320&times;200, 256 colours, <b>non-square pixels</b>: shown on a 4:3 CRT). The canvas below is the real 320&times;200 index buffer, stretched to a 4:3 display box. The visuals are a pure function of the music position
     (the demo's own script table is keyed on AMF order/row), so you can seek anywhere. Music: <code>EYE.AMF</code> (what INSIDE.EXE loads via DSMI) rendered by libopenmpt.</p>
