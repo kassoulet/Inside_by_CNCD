@@ -1,8 +1,23 @@
-// Data for scene 'water' captured from the emulated original at the first call of the frame function 0x23d78 (full run from program start):
-//  - SEED: Watcom rand() state [0x104818] at that moment (depends on the whole earlier history of the demo, so it is a constant here)
+import { mat3 } from './engine3d.js';
+const PI_2 = new Float64Array(new BigUint64Array([0x3ff921fb544486e0n]).buffer)[0];   // the original's pi/2 constant (slightly below Math.PI/2)
+// Data for scene water (SEED and FISH derived, checked against the emulator at the first call of the frame function 0x23d78):
+//  - SEED: Watcom rand() state [0x104818] at that moment (derived below from srand(0x45eafc) + 1055 draws)
 //  - FISH: the 8 fish nodes ([0x107570+4i]): integer position (+0x10..0x18) and 3x3 double matrix (+0x28) as left by the init 0x23dec (rand() based: x=rand()%3000-1500, z=rand()%1000, heading rand()%300 degrees)
 //  - T0: value of the global tick counter [0x1058c4] at the first B call (phase of the fish sin/cos motion only; it is 20 when the run starts at 118.07 s, 28954 in the full run)
-export const SEED = 845024719;     // as in `golden.py 118.07` (full run from program start: 1366540578, T0 28954 - make(dat,{seed,t0}) reproduces that run bit-exactly too)
+// DERIVED (re/notes_water.md "Rand/tick phase"): the program init calls srand(0x45eafc); the rand() draws that follow are, in order, 9 flight init draws, 30 more from the other init handlers,
+// then the 8 fish (0x23b8b: z = r%1000, x = r%3000-1500, heading r%300 degrees: draws 40..63), then 992 more (intro drops, flower, credits, water 0x25a30...) up to the first B call = 1055 draws in all.
+// The count is fixed only for a run started mid-demo (golden.py 118.07 / 98.38): the catch-up fires every earlier script entry once at one tick. From t=0 it depends on the frame rate (per-frame callers).
+const SEED0 = 0x45eafc, CALLS = 1055, FISH_AT = 39;
+const lcg = (s) => (Math.imul(s, 0x41c64e6d) + 0x3039) | 0;
+export const SEED = (() => { let s = SEED0; for (let i = 0; i < CALLS; i++) s = lcg(s); return s >>> 0; })();   // 845024719
+export const FISH = (() => {
+  let s = SEED0; const r = () => { s = lcg(s); return (s >>> 16) & 0x7fff; };
+  for (let i = 0; i < FISH_AT; i++) r();
+  return Array.from({ length: 8 }, () => {
+    const z = r() % 1000, x = r() % 3000 - 1500, h = r() % 300;
+    const mat = mat3.euler(PI_2, 0, 0); mat3.rotY(mat, h * 0.01745329252);      // 0x2c8dc(pi/2,0,0), then 0x305ac(h * 0.01745329252)
+    return { pos: [x, 0, z], mat };
+  });
+})();
 export const T0 = 20;
-export const FISH = [{"pos": [6, 0, 448], "mat": [0.4848096202433118, 0.0, 0.8746197071410727, 0.8746197071410727, -5.1034119672569625e-12, -0.4848096202433118, 4.46354468022253e-12, 1.0, -2.474183217791021e-12]}, {"pos": [1164, 0, 210], "mat": [0.6819983600605494, 0.0, 0.7313537016209881, 0.7313537016209881, -5.1034119672569625e-12, -0.6819983600605494, 3.7323992331502284e-12, 1.0, -3.4805185923826305e-12]}, {"pos": [-691, 0, 551], "mat": [0.37460659343126373, 0.0, -0.9271838545605849, -0.9271838545605849, -5.1034119672569625e-12, -0.37460659343126373, -4.731801179211928e-12, 1.0, -1.9117717719304748e-12]}, {"pos": [-123, 0, 385], "mat": [0.719339800336918, 0.0, 0.694658370460792, 0.694658370460792, -5.1034119672569625e-12, -0.719339800336918, 3.5451278409648264e-12, 1.0, -3.671087345563661e-12]}, {"pos": [-524, 0, 13], "mat": [0.19080899537214746, 0.0, 0.9816271834485187, 0.9816271834485187, -5.1034119672569625e-12, -0.19080899537214746, 5.009647915395916e-12, 1.0, -9.737769104424958e-13]}, {"pos": [-45, 0, 494], "mat": [-0.6018150231577997, 0.0, 0.7986355100429589, 0.7986355100429589, -5.1034119672569625e-12, 0.6018150231577997, 4.075766019429604e-12, 1.0, 3.071309991258541e-12]}, {"pos": [-239, 0, 996], "mat": [0.9510565162948381, 0.0, 0.3090169943759181, 0.3090169943759181, -5.1034119672569625e-12, -0.9510565162948381, 1.577041027183838e-12, 1.0, -4.853633206796793e-12]}, {"pos": [-820, 0, 491], "mat": [-0.9998476951562121, 0.0, -0.017452406447545418, -0.017452406447545418, -5.1034119672569625e-12, 0.9998476951562121, -8.906681992183586e-14, 1.0, 5.102634692894504e-12]}];
 export const OBMAT_AT_B0 = [0.9360612600019099, 0.0, 0.3518370610433706, 0.0, 1.0, 0.0, -0.3518370610433706, 0.0, 0.9360612600019099];   // obuke matrix 0x1074d8 at the first B call (= Ry(0.1745329)*Ry(0.0185)^10), used as a check
