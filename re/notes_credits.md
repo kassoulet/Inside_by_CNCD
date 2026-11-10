@@ -95,3 +95,6 @@ that drives the script for this scene (`golden.py 29.459`; with 29.5 the offset 
 30d69 fchs
 30d71 fstp qword ptr [esp]                 ; r = (-f.z, 0, f.x)   (y was zeroed at 30d43)
 ```
+
+## Equal-depth tie order (tested, negative)
+tunnel2 became bit-exact once `scene.meshes.reverse()` fixed the draw order of equal depth keys (re/notes_tunnel2.md). Same test here (reverse after the 12 smoke billboards are added), golden.py 29.459 900 --k=10 vs render_node, palette indices: 842 exact / 1 differing frame (53118 pixels) both before and after, identical pixel counts. Smoke billboards never tie in a way that shows, so the order is left as is (no change). The remaining differing frame is a start-up frame (half drawn buffers in the golden run).

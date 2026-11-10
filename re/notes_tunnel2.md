@@ -2,7 +2,7 @@
 
 Port: `web/js/scenes/tunnel2.js` (uses `Billboard`/`CScene` from `web/js/engine3d_credits.js`; script.js got a 1-line `startFlash` hook).
 Fidelity (golden.py 157.451 740 frames, `--k=10`): **bit exact on every frame from the start of the scene up to the fade-out at 181.04 s (669 of 669 frames, 0 differing pixels; the earlier 'sub-pixel billboard rounding' diagnosis was wrong, see below)**;
-cmp.py RGB MAE over the whole 722 frames = **0.37** (the rest: the two start frames and the 35:48 fade-out, 1 frame early/late).  ~1.5 ms/frame in node.
+cmp.py RGB MAE over the whole 722 frames = **0.27** (was 0.37 before the fade-out fix) (the rest: the two start frames, where the golden palette flash comes ~10 ticks later than ours).  ~1.5 ms/frame in node.
 It is NOT the 'credits' tunnel: it shares no objects with it (the lead's table said "dark tunnel with flares (credits/smoke.shd ...)" - the files are `temple/*`): a glass temple seen by a camera orbiting in it, three light beams, ten flares.
 
 ## Files / objects
@@ -19,7 +19,7 @@ It is NOT the 'credits' tunnel: it shares no objects with it (the lead's table s
 | addr | role |
 |---|---|
 | 0x2061c | start handler: memset both page buffers (0x277a4, 0xfa00 bytes each), **white flash 0x1c498**, base palette `temple.pal` [0x106ed0] (`0x1c364`), A = 0x2007c, B = 0x20424 |
-| 0x20668 | stop (A = B = 0), scripted at ~23.5 s into the scene (6702 ticks) - after that the screen is black (fade-out 35:48, 0x1c438) |
+| 0x20668 | stop (A = B = 0), scripted at ~23.5 s into the scene (6702 ticks) - after that the screen is black (fade-out 35:48, 0x1c438; it starts 10 ticks later than the generic firing tick - tunnel2's script poll runs one 10-tick frame late - modelled by `scriptLag: 10` in tunnel2.js + script.js; palettes then match the golden run exactly on every fade-out frame. After the stop the index frames differ but the DAC is black, so RGB is identical) |
 | 0x20464 | init (once): loads the 11 files (names 0x101b34..), materials [0x106ebc]/[0x106ec0] (0x2c5e4), scene [0x106eb4] (fov 0xaa), calls 0x1f900, 0x1f9c8; [0x106e64] = 10 flares |
 | 0x1f900 | pivot node [0x106ecc] (identity, matrix 0x106a68), camera [0x106e74] (parent = pivot; local position vector 0x106ab0 = (0, 320, -850), local matrix 0x106e10 = Euler(0.2618, 0, pi)) |
 | 0x1f9c8 | the six meshes (loop 0x1f9e5), per-object face function/material/scale patches (0x1faa3..0x1fd0a), flare nodes (0x1fd5a loop), light (0x1feb4..0x1ff02) |

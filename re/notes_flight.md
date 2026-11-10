@@ -50,3 +50,6 @@ The camera/ship records (camera, ship0..2; pos3 ints + matrix9 doubles) come fro
 Before (hand painter): MAE 10.45, bad>8 35.0 %, palette-index match 62.9 %.
 After (engine + exact sprites): MAE 3.36, bad>8 1.4 %, palette-index match 99.7 % (439 frames after the fade-in; frames with sun/lens flares near the screen edge are the worst, ~98 %).
 Remaining MAE is mostly the fade-in (first 60 ticks) and scattered pixels. Still approximate: PATH comes from the emulator recording (rand()-driven ship/camera sim not re-derived, valid only for the run starting at 98.38 s); small residual in ship env-map highlights; flare enable test 0x2de80 approximated by the +-12 px sun-on-screen test.
+
+## Equal-depth tie order (tested, negative)
+Golden 98.38 520 --k=10: the scene already lists the nodes in the original list order (flares 7..0, sun, ships, terrain). Reversing `scene.meshes` (the tunnel2 fix, whose scene.add order was creation order) gives 230837 differing pixels against 229865 now (19 exact frames both ways), i.e. slightly worse, so nothing changed. The flight error comes from elsewhere (sprites near the screen edge, libm ulps).

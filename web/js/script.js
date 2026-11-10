@@ -53,7 +53,8 @@ export class Timeline {
     const k = ++this.k, f = this.fade;
     // original loop order per iteration: [tick ISR: palette step + present] -> frame function -> script (fires entries due, effect seen from the next iteration)
     // so entries with tick < k have fired before this iteration's ISR
-    while (this.ei < this.entries.length && this.entries[this.ei].tick < k) {
+    // tunnel2 (0x2061c) runs its script poll one 10-tick frame late (golden: its 0x1c438 fade-out starts exactly 10 ticks after the generic firing tick), so non-start entries are delayed by sc.scriptLag
+    while (this.ei < this.entries.length && this.entries[this.ei].tick + (STARTS[this.entries[this.ei].fn] ? 0 : (this.scenes[this.segs[this.seg] && this.segs[this.seg].id] || {}).scriptLag || 0) < k) {
       const e = this.entries[this.ei++];
       const op = OPS[e.fn];
       if (op === 'white' || FLASHES.has(e.fn)) f.white(); else if (op === 'invert') f.invert(20); else if (op === 'black') f.black(40);
