@@ -37,3 +37,6 @@ The `tex+0x8000` bias turns the 16-bit wrap-around into free texture wrapping.
 `0x27a78` = float->int rounding helper used for *every* conversion: `fnstcw; or cw,0x0f00 (mov byte [esp+1],0x1f); fldcw; frndint; fldcw` i.e. switches the x87 to truncate mode around frndint (Watcom `__CHP` equivalent).
 
 `0x26408`: `xor ch,ch; xor bh,dh; shl edx,8; add edx,ecx` unpacks (angle,radius) into (radius, radius<<8+angle) with byte-register tricks, no shifts of the angle.
+
+## Speed bug (found 2026-11, user report: wrong palettes/textures at 2:30 and 2:37)
+`render(fb, t)` receives scene ticks (= real ticks x player speed, default 0.25) but the picture-variant events `EV` and the display lag `LAG` are real-tick quantities, so the texture switched 1/speed later (4x at 0.25) than the palette (which `basePalette` takes from the scaled script events): wrong texture/palette pairs from 149.5 s to 157.4 s. Fixed: `main.js`/`render_node.mjs` pass `spd` in the render options and `twirl.js` scales `EV` and `LAG` by it (and resets its accumulator cache if the speed changes). At speed 1 the output is unchanged; at 0.25, 280 of 1500 frames (147-157.4 s) change. Checked visually at 150.3/152.5/155.8/157.0 s. Note: `render_node.mjs` runs at speed 1 unless `tl.speed` is set; earlier twirl/golden comparisons were speed 1.

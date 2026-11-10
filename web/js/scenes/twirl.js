@@ -30,11 +30,12 @@ export default function make(dat) {
     id: 'twirl', palette,
     // 0x26098 sets the palette in the same call as its flash, i.e. at the script entry itself (exact tick, not the 10-tick frame grid EV that only drives the picture)
     basePalette(t, seg) { let k = 0; for (const e of seg.events) if (e.fn === '0x26098' && e.tick < t) k++; return k ? pals[k % 5] : palette; },
-    render(fb, t) {
-      t = Math.max(0, t - LAG);
+    render(fb, t, o) {
+      // t is in scene ticks = real ticks * speed: the picture events and the display lag are real-tick quantities, scale them too (else the texture switches 1/speed later than the palette)
+      const sp = (o && o.spd) || 1; t = Math.max(0, t - LAG * sp);
       if (!T) T = buildT();
-      const ev = EV;
-      if (!st || t < st.tick) st = mkst();
+      const ev = sp === 1 ? EV : EV.map(x => x * sp);
+      if (!st || t < st.tick || st.sp !== sp) { st = mkst(); st.sp = sp; }
       let par = SETS[(1 + st.k) % 5];
       while (st.tick < t) { // A: once per ISR tick
         while (st.k < ev.length && ev[st.k] <= st.tick) { st.k++; par = SETS[(1 + st.k) % 5]; }

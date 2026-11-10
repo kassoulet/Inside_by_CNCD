@@ -14,7 +14,7 @@ const fb = new Uint8Array(64000), frames = Buffer.alloc(n * 64000), pals = Buffe
 const k0 = Math.round(t0 * TICK_HZ);
 for (let i = 0; i < n; i++) {
   const k = k0 + i * step, st = tl.at(k);
-  if (st.seg && scenes[st.seg.id] && !st.ended) scenes[st.seg.id].render(fb, st.sceneTick, { events: st.seg.events, seg: st.seg, tick: k, dat }); else fb.fill(0);
+  if (st.seg && scenes[st.seg.id] && !st.ended) scenes[st.seg.id].render(fb, st.sceneTick, { events: st.seg.events, seg: st.seg, tick: k, spd: tl.spd(st.seg), dat }); else fb.fill(0);
   frames.set(fb, i * 64000); pals.set(st.pal, i * 768); meta.push({ tick: k, t: k / TICK_HZ, scene: st.seg ? st.seg.id : null, sceneTick: st.sceneTick });
 }
 fs.writeFileSync(out + '/frames.u8', frames); fs.writeFileSync(out + '/pals.u8', pals); fs.writeFileSync(out + '/meta.json', JSON.stringify(meta));
