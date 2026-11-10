@@ -2,7 +2,7 @@
 // Variants 1/2 (warped 7x7 quad mesh, two textures combined through a 256x256 table, + sprite): engine mesh drawn by face function 0x33a82 (= MODE.LIGHTMAP), bit-exact against the emulator.
 // Variants 3/4 (original: textured+Gouraud-lit 'kuubio' room box, camera/light animation, shadow quad): APPROXIMATION, see notes.
 import { Scene, Node, Mesh, Light, Material, parseSRO, mat3, MODE } from '../engine3d.js';
-const R = 10000 / 35, LAG = 10, FRAME_TICKS = 20;   // the golden captures render one nigga frame per 20 ticks (the frame-wait spin loop injects extra ISR ticks)
+const R = 10000 / 35, LAG = 10, FRAME_TICKS = 20;   // the golden captures (K=10) render one nigga frame per 20 ticks (the frame-wait spin loop injects extra ISR ticks); the frame rate is machine bound, so this is a REAL-tick quantity (see render3: scaled by spd)
 const hexd = (h) => new DataView(Uint8Array.from(h.match(/../g).map(x => parseInt(x, 16))).buffer).getFloat64(0, true);
 // Variants 3/4 (0x20bf3..0x20f5c): the 'kuubio' room box (poksi.sro, 98 vertices, Gouraud + shade table through MODE.GOURAUD 0x30e5c), one point light and a 4 vertex shadow quad drawn through
 // a 16 level table (MODE.BLEND 0x3269c) with the engine ('Surrender'); everything below was read from the emulator (node/material dumps) and the code:
@@ -48,7 +48,7 @@ export default function make(dat) {
     const o = box3(v), T = rt.tick - LAG, d = o.d, c = Math.cos, sn = Math.sin, tr = Math.trunc;
     const e4 = v === 4 ? rt.events.find(e => e.fn === '0x21ba0') : null;
     o.box.setMatrix(o.matrixAt(Math.max(0, u - (e4 ? e4.tick : 0))));
-    const ev = rt.events.find(e => e.fn === '0x21f00'), nf = ev && u >= ev.tick ? Math.floor((u - ev.tick) / FRAME_TICKS) + 1 : 0;   // frames since the event: y -= 30 per frame, and x -= 15 in variant 4 (0x20861..0x2088f)
+    const ev = rt.events.find(e => e.fn === '0x21f00'), nf = ev && u >= ev.tick ? Math.floor((u - ev.tick) / (FRAME_TICKS * (rt.spd || 1))) : 0;   // frames since the event (frames are real-time, u is in scene ticks: x spd; verified vs K=1 golden: no +1): y -= 30 per frame, and x -= 15 in variant 4 (0x20861..0x2088f)
     o.cam.setPos(d.cam[0] - (v === 4 ? 15 * nf : 0), d.cam[1] - 30 * nf, d.cam[2]);
     o.light.peak = tr(400 * sn(T * 0.0033255736614566014) + 1200);
     if (v === 3) {

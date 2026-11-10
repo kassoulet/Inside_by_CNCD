@@ -77,12 +77,16 @@ export default function make(dat, opt = {}) {
   const frames = new Stepper(() => ({ b: [new Uint8Array(64000), new Uint8Array(64000)] }),
     (s, n) => { const k = n + 1; frame(10 * k); scene.render(s.b[k & 1]); },
     (s) => ({ b: [Uint8Array.from(s.b[0]), Uint8Array.from(s.b[1])] }), 16);
+  const half = new Uint8Array(64000);
   return {
     id: 'tunnel2', palette: pal, scene, frame, startFlash: true, scriptLag: 10,
     render(fb, tick) {
       const k = Math.floor((tick - LAG) / 10);
       if (k < 1) { fb.fill(0); return; }
-      fb.set(frames.at(k).b[k & 1]);
+      const base = frames.at(k).b[k & 1];
+      // ponytail: half-step frame at +5 ticks (twice the original emulated 10-tick frame rate); drawn over a copy of frame k so the stale-pixel look stays, k-grid frames stay bit exact
+      if ((tick - LAG) % 10 >= 5) { half.set(base); frame(10 * k + 5); scene.render(half); fb.set(half); return; }
+      fb.set(base);
     },
   };
 }

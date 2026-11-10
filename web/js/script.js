@@ -46,7 +46,7 @@ export class Timeline {
   }
   /** in-scene animation speed factor (1 = the emulated original's 285.7 ticks per music second; scene changes, flashes and fades stay on the music rows) */
   /** speed of a scene: one value for all (a DOSBox-X run with cycles=fixed 90000 fits 0.25 in logo, credits, flower and water; water/tunnel2 were briefly doubled, the fit says no) */
-  spd(sg) { return (this.speed || 1) * (sg && (sg.id === 'intro' || sg.id === 'water') ? 2 : 1); }   // intro and water: twice faster (user request, not the DOSBox fit)
+  spd(sg) { return (this.speed || 1) * (sg && sg.id === 'water' ? 4 : sg && sg.id === 'intro' ? 2 : 1); }   // intro: twice faster (user request); water: 4x = sceneTick = k at the default 0.25, i.e. the golden run's 10 ticks/frame (28.6 fps ripples/fish, 0.84 turn/s spiral); the old 2x gave 14 fps
   setSpeed(v) { this.speed = v; this._sc = new Map(); this.reset(); }
   _scaled(sg) { const s = this.spd(sg); if (s === 1) return sg; let o = this._sc && this._sc.get(sg); if (!o) { o = Object.assign({}, sg, { events: sg.events.map(e => Object.assign({}, e, { tick: e.tick * s })) }); (this._sc = this._sc || new Map()).set(sg, o); } return o; }
   reset() { this.k = -1; this.ei = 0; this.seg = -1; this.lastBase = null; this.fade = new Fade(); this.ckpt = []; this.pend = null; this._boot(); }
