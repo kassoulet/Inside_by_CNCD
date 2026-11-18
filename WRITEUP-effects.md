@@ -183,6 +183,81 @@ Scene objects: logo `obuke` 130 v / 256 f; credits `tuubi` 132 v / 240 f, `piikk
 flight `ship` 200 v / 399 f; water `obuke` 287 v / 570 f, `fish` 8 v / 10 f; temple `mesta21` 49/84, `mesta22` 192/256, `mesta23` 173/268, `putki` 15/20 (x3). The whole DAT
 contains duplicates that the program can never reach (3x `temple/putki.sro`, 2x `flower/kukka1.sro`, because the lookup is a linear `strcmp`, first match wins).
 
+## 6b. 2D/3D art used (what each asset is, where it lives, how it was read)
+
+All art lives in `INSIDE.DAT` (section 6); the offsets below are into the *unpacked* 2,721,868-byte blob (`re/dat_listing.txt` has every offset, `tools/dat.py` extracts to `re/assets/`). Nothing is stored as an image file: every picture is a **headerless 8-bit palette-indexed raster** (`.raw`) whose
+size is *not* in the file; the dimensions come from the original's code (`re/notes_*.md`, checked here: width x height equals the byte size for every file below). Palettes are separate `.pal` files, 768 B = 256 x RGB, **6-bit VGA values** (previews scale `v*255/63`); each scene loads its own and
+switches the DAC to it. In the `nigga` variants the first three palette bytes are zeroed at load so that colour 0 is black and acts as the sprite key. "Colours" = distinct indices actually present in the raster (counted from the extracted files). Previews: `figures/inside_art_*.png` (generated with Pillow from `re/assets`, one palette per
+scene as in the table).
+
+### 2D rasters
+
+| file (offset in blob) | size | palette | colours | role |
+|---|---|---|---|---|
+| `intro/intro.raw` (17152) | 320x200 | `intro.pal` | 256 | the title picture, plain copy, index 0 transparent; `intro.shd` (16 KB, 64 x 256) maps index 0 -> 76 |
+| `logo/twlogo.raw` (81152) | 256x256 | `logo.pal` | 103 | texture of the star (one material, shade table `logo.shd`) |
+| `logo/inside.raw` (163840) / `inmask.raw` (202091) | 249x139 / 253x147 | `logo.pal` | 256 / 16 | logo lettering (key 0) / its mask, values 0..15, darkens the star through `inmask.shd` (16 x 256) |
+| `credits/tunnel.raw` (244146) | 256x1024 | `tunnel.pal` | 221 | tube texture, scrolled (shade `tunnel.shd`, blend `tunnel.int`) |
+| `credits/piikkis.raw` (657842) | 256x256 | `tunnel.pal` | 208 | texture of the spike ball at the end of the credits |
+| `credits/sauhu.raw` (588210) | 64x64 | `tunnel.pal` | 31 | orb/smoke billboard (12 of them), additive through `smoke.shd` (256 x 256) |
+| `credits/wtrmask.raw` (816192) | 320x200 | `tunnel.pal` | 32 | border darkening mask (blend `wtrmask.int`) |
+| `credits/kredu1,7,2,8,3,6.raw` | 173x75, 129x75, 146x75, 154x72, 318x82, 294x75 | `tunnel.pal` | 30..32 | credit names (DESTOP, WILI, JOUNI, JULIET, YOLK & LEGEND; `kredu6` is never shown) |
+| `flight/map.raw` (1044079) | 512x512 | `map.pal` | 170 | terrain colour texture (`map.shd` 64 x 256 light, `map.fog` 128 x 256 fog) |
+| `flight/river.raw` (1355375) | 256x256 | `map.pal` | 74 | fish-eye sky/ground environment map for the ships |
+| `flight/sun.raw` (1027695) | 128x128 | `map.pal` | 25 | ready-made sun, key colour 221 (sky) |
+| `flight/lens1..5.raw` (954400..) | 74x63, 52x43, 31x23, 12x11, 4x4 | `map.pal` | 8, 6, 6, 6, 4 | lens-flare hexagons, 0 = transparent, additive through `flare.shd` (256 x 256) |
+| `temple/temple.raw` (1427303) | 256x256 | `temple.pal` | 256 | glass-temple texture (blend `temple.int`) |
+| `temple/flare.raw` (1492839) | 128x104 | `temple.pal` | 56 | 10 flare billboards (additive `flare.shd`) |
+| `nigga/niggaN.raw` N = 1, 2, 9, 4 | 256x256 | `niggaN.pal` | 98, 165, 138, 180 | warp-grid background / room texture (`.shd` or `.qnt` shade tables) |
+| `nigga/spriteN.raw` | 164x156, 172x200, 274x147, 170x168 | `niggaN.pal` | 156, 103, 107, 77 | foreground sprites (colour 0 = key), placed at (0,44), (0,0), (46,53), (94,28) |
+| `nigga/shadow9.raw` / `shadow4.raw` | 128x128 / 256x256 | `niggaN.pal` | 16 / 16 | shadow quad texture, 16 levels, blended through `shadowN.sdw` (64 x 64) |
+| `water/water.raw`, `waterenv.raw` | 320x200, 256x256 | `water.pal` | 143, 135 | background picture; environment texture for the spiral (blend `water.int`) |
+| `flower/jeesus1.raw`, `jeesus2.raw` | 256x256 | `jeesus.pal` | 98, 160 | flower texture; tunnel texture (also reused by the twirl scene, together with `nigga2/4` and `river`) |
+
+![logo and credits](figures/inside_art_logo_credits.png)
+![credit names](figures/inside_art_credit_names.png)
+![flight](figures/inside_art_flight.png)
+![temple](figures/inside_art_temple.png)
+![nigga](figures/inside_art_nigga.png)
+![water and flower](figures/inside_art_water_flower.png)
+![the palettes](figures/inside_art_palettes.png)
+
+The `.shd/.int/.qnt/.sdw/.fog` files are lookup tables, not pictures: shade tables `shd[level][texel]`, blend tables `int[src<<8 | dst]` (not a plain add), additive flare tables `shd[texel][dst]`, fog `fog[level][colour]` (rows >= 62 are all 221, the sky colour). The unused `water.shd` is loaded but never read by the water scene.
+
+### 3D meshes (`.sro`, 22 distinct files)
+
+Header `u32 {magic 0x1df020 | size, 0x20 | 0x14, nverts, faceofs, nfaces}`, vertices `{i16 x,y,z; 6 more bytes}` at 0x14, faces `{u16 0; u16 a,b,c}` at `faceofs` (triangles only). Counts read from the extracted files (they agree with the list in section 6):
+
+| mesh | bytes | vertices | faces | coordinate range (per axis, int16) |
+|---|---|---|---|---|
+| `logo/obuke` | 3640 | 130 | 256 | +-512 (star) |
+| `credits/tuubi` | 3536 | 132 | 240 | y -488..69, z -352..623 |
+| `credits/piikkis` | 5136 | 252 | 260 | +-435, +-457, +-511 |
+| `nigga/poksi` | 2744 | 98 | 192 | x +-337, y -413..425, z -382..511 (drawn at scale 8) |
+| `flower/tunneli1` | 20324 | 732 | 1440 | x -1526..2826, y -5265..224, z -15659..-5531 |
+| `flower/kukka1`, `-2`..`-8` (8 files; a 9th copy of `kukka1` is unreachable) | 2352 | 111 | 125 | about +-1000 (the 11 morph targets of the flower) |
+| `flower/kukka2`, `kukka2-2` | 2360 | 109 | 129 | +-1000 / +-697 |
+| `flight/ship` | 5624 | 200 | 399 | +-626, -773..281, -767..780 |
+| `water/obuke` | 8024 | 287 | 570 | spiral, x -940..607, y -1639..1923 |
+| `water/fish` | 208 | 8 | 10 | +-150, +-226, -824..971 |
+| `temple/mesta21` / `22` / `23` | 1280 / 4372 / 4240 | 49 / 192 / 173 | 84 / 256 / 268 | up to +-1843 / +-5758 / +-8192 |
+| `temple/putki` (3 copies, first used) | 372 | 15 | 20 | z +-608 |
+
+Wireframes of every file (edges of the triangle list, one fixed view, `figures/inside_art_meshes_wire.png`; the shaded view of 12 of them is `figures/objects_3d.png`):
+
+![wireframes of all .sro](figures/inside_art_meshes_wire.png)
+
+`.lws` (`flower/tunnel1.lws`, 2631 B) is the LightWave scene of the flower tunnel (text).
+
+### Data produced by code at start-up (not in the DAT)
+
+* **Terrain height and shade tables** (flight): 128x128 cells of `{i32 height, i32 shade}` built by init functions `0x1d450` / `0x1d36c`, heights -1448..246, shade 160..1023. They are **not** derived from `map.raw`; the port stores a dump from the emulator in `web/js/flightdata.js` (`HTS`, `SHD`, Int16): `figures/inside_art_terrain_tables.png`. The terrain mesh itself (19x19 vertices around the camera cell, 512 units per cell) is regenerated every frame from the table.
+* **Credits flight path** (`0x2284c`): 1024 rows x 0x6c bytes (ring centre, 12 ring brightnesses 0..1008, 12 radius factors 0.67..1.6), a running sum of about 20 sines plus values from the Watcom `rand()` stream; dumped to `web/js/creditsdata.js`. The tube's 11 x 12 vertices are rewritten each frame from it.
+* **Randomised starts**: the flare directions of the temple (`rand()` at init) are embedded in `tunnel2.js`; the water scene's rand state and fish start are derived from `srand(0x45eafc)` (`waterdata.js`).
+* **Intro light buffer**: a 320x200x16-bit buffer diffused each frame (`notes_intro.md`).
+
+![terrain tables](figures/inside_art_terrain_tables.png)
+
 ## 7. How the original was reverse engineered
 
 1. `INSIDE.EXE` is PMODE/W (LE-style stub with compressed objects): `re/unpack_pmodew.py` runs the PMODE/W loader under **Unicorn** and dumps the 64 MB guest memory at the program
