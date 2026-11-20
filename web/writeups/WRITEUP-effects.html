@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>INSIDE (CNCD, 1996) - effects, 3D engine, tricks, objects and
+scenes</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+  :root{--bg:#fff;--fg:#1d1d22;--mut:#666;--ac:#c4155a;--code:#f3f3f6;--bd:#d8d8e0}
+  @media (prefers-color-scheme:dark){:root{--bg:#0b0b10;--fg:#d8d8e0;--mut:#9a9aa8;--ac:#ff6a9a;--code:#17171f;--bd:#33333f}}
+  *{box-sizing:border-box}
+  body{margin:0 auto;max-width:62rem;padding:0 16px;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,sans-serif}
+  #wunav{display:flex;gap:16px;flex-wrap:wrap;padding-top:12px;padding-bottom:8px;border-bottom:1px solid var(--bd);font-size:14px}
+  a{color:var(--ac)}
+  h1,h2,h3,h4{line-height:1.25;margin-top:1.8em}
+  img{max-width:100%;height:auto;image-rendering:auto}
+  pre{background:var(--code);border:1px solid var(--bd);border-radius:4px;padding:10px 12px;overflow-x:auto;font-size:13px;line-height:1.4}
+  code{background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em;overflow-wrap:anywhere}
+  pre code{background:none;padding:0;overflow-wrap:normal}
+  table{border-collapse:collapse;display:block;overflow-x:auto;max-width:100%}
+  td,th{border:1px solid var(--bd);padding:4px 8px}
+  blockquote{border-left:3px solid var(--bd);margin-left:0;padding-left:14px;color:var(--mut)}
+  #TOC{font-size:14px}#TOC ul{padding-left:1.2em}
+  #TOC>ul{padding-left:0;list-style:none}
+  details#toc-box{margin:12px 0}
+  </style>
+</head>
+<body>
+<nav id="wunav"><a href="../index.html">&larr; the demo</a> <a href="WRITEUP-asm.html">asm</a> <a href="WRITEUP-effects.html">effects</a> <a href="https://github.com/kassoulet/Inside_by_CNCD">README on GitHub</a></nav>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a
+href="#inside-cncd-1996---effects-3d-engine-tricks-objects-and-scenes"
+id="toc-inside-cncd-1996---effects-3d-engine-tricks-objects-and-scenes">INSIDE
+(CNCD, 1996) - effects, 3D engine, tricks, objects and scenes</a>
+<ul>
+<li><a href="#0-at-a-glance" id="toc-0-at-a-glance">0. At a
+glance</a></li>
+<li><a href="#1-display-and-timing" id="toc-1-display-and-timing">1.
+Display and timing</a></li>
+<li><a href="#2-timeline" id="toc-2-timeline">2. Timeline</a></li>
+<li><a href="#3-the-3d-engine-surrender"
+id="toc-3-the-3d-engine-surrender">3. The 3D engine
+("Surrender")</a></li>
+<li><a href="#4-scene-by-scene" id="toc-4-scene-by-scene">4. Scene by
+scene</a>
+<ul>
+<li><a href="#41-intro-0---196-s---light-drops"
+id="toc-41-intro-0---196-s---light-drops">4.1 Intro (0 - 19.6 s) - light
+drops</a></li>
+<li><a href="#42-logo-196---295-s---the-camera-is-inside-the-star"
+id="toc-42-logo-196---295-s---the-camera-is-inside-the-star">4.2 Logo
+(19.6 - 29.5 s) - the camera is inside the star</a></li>
+<li><a href="#43-credits-295---59-s---the-tube"
+id="toc-43-credits-295---59-s---the-tube">4.3 Credits (29.5 - 59 s) -
+the tube</a></li>
+<li><a href="#44-the-warp-grid-nigga-59---689-s-and-1366---1476-s"
+id="toc-44-the-warp-grid-nigga-59---689-s-and-1366---1476-s">4.4 The
+warp grid, "nigga" (59 - 68.9 s and 136.6 - 147.6 s)</a></li>
+<li><a href="#44b-flower-689---984-s---morphing-chrome-flowers"
+id="toc-44b-flower-689---984-s---morphing-chrome-flowers">4.4b Flower
+(68.9 - 98.4 s) - morphing chrome flowers</a></li>
+<li><a href="#45-flight-984---1181-s---terrain-ships-lens-flares"
+id="toc-45-flight-984---1181-s---terrain-ships-lens-flares">4.5 Flight
+(98.4 - 118.1 s) - terrain, ships, lens flares</a></li>
+<li><a href="#46-water-118---1366-s" id="toc-46-water-118---1366-s">4.6
+Water (118 - 136.6 s)</a></li>
+<li><a href="#47-twirl-1476---1575-s"
+id="toc-47-twirl-1476---1575-s">4.7 Twirl (147.6 - 157.5 s)</a></li>
+<li><a href="#48-temple-1575---18275-s"
+id="toc-48-temple-1575---18275-s">4.8 Temple (157.5 - 182.75 s)</a></li>
+</ul></li>
+<li><a href="#5-cool-tricks-summary" id="toc-5-cool-tricks-summary">5.
+Cool tricks (summary)</a></li>
+<li><a href="#6-asset-catalogue-insidedat-96-files-lzss"
+id="toc-6-asset-catalogue-insidedat-96-files-lzss">6. Asset catalogue
+(INSIDE.DAT, 96 files, LZSS)</a></li>
+<li><a
+href="#6b-2d3d-art-used-what-each-asset-is-where-it-lives-how-it-was-read"
+id="toc-6b-2d3d-art-used-what-each-asset-is-where-it-lives-how-it-was-read">6b.
+2D/3D art used (what each asset is, where it lives, how it was read)</a>
+<ul>
+<li><a href="#2d-rasters" id="toc-2d-rasters">2D rasters</a></li>
+<li><a href="#3d-meshes-sro-22-distinct-files"
+id="toc-3d-meshes-sro-22-distinct-files">3D meshes (<code>.sro</code>,
+22 distinct files)</a></li>
+<li><a href="#data-produced-by-code-at-start-up-not-in-the-dat"
+id="toc-data-produced-by-code-at-start-up-not-in-the-dat">Data produced
+by code at start-up (not in the DAT)</a></li>
+</ul></li>
+<li><a href="#7-how-the-original-was-reverse-engineered"
+id="toc-7-how-the-original-was-reverse-engineered">7. How the original
+was reverse engineered</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1
+id="inside-cncd-1996---effects-3d-engine-tricks-objects-and-scenes">INSIDE
+(CNCD, 1996) - effects, 3D engine, tricks, objects and scenes</h1>
+<p><em>INSIDE</em> by <strong>CNCD</strong> (code: wili, jouni, juliet;
+graphics: destop; music: Yolk &amp; Legend; sound: DSMI by OC/Virtual
+Visions; extender: PMODE/W), released at The Gathering 1996. 113 KB of
+executable, a 2.7 MB LZSS-packed <code>INSIDE.DAT</code> (96 files), a
+4-channel-ish AMF module <code>EYE.AMF</code> (677 KB). 182.75 s.</p>
+<h2 id="0-at-a-glance">0. At a glance</h2>
+<p><img src="figures/compare_scenes.png"
+alt="original against port" /></p>
+<p><em>Figure: one frame of each scene, the original run headless under
+emulation (left), the JavaScript port (middle) and the absolute
+difference (right). The golden run starts a scene "frames since its
+trigger", so the port frame is matched with the best time shift (printed
+under each row).</em></p>
+<p><img src="figures/error_per_scene.png" alt="error per scene" /></p>
+<p><em>Figure: mean absolute RGB error (0-255) per scene after that
+alignment. The temple is bit-exact; the flower scene's error (39) is not
+a timing shift (a search over +-400 ticks does not lower it): its vertex
+shades contain <code>rand()</code> (section 4), the port embeds the
+table dumped from one reference run, and this golden run, started
+'frames since the trigger', draws a different one, so the petals differ.
+The scene's own comparison (75 % of the frames pixel-exact, see its
+section) uses the matching table.</em></p>
+<p><img src="figures/objects_3d.png" alt="3D objects" /></p>
+<p><em>Figure (3D): twelve of the meshes in <code>INSIDE.DAT</code>
+(<code>.sro</code>: signed 16-bit vertices, triangle faces). An
+interactive viewer (three.js, orbit/zoom/wireframe) is in <a
+href="../viewer3d.html"><code>web/viewer3d.html</code></a>. Regenerate
+with <code>python3 tools/make_figures.py</code> (after running
+<code>golden.py</code> and <code>render_node.mjs</code> for the START
+times listed in the script) and
+<code>python3 tools/export_meshes.py &gt; web/assets/meshes.json</code>.</em></p>
+<h2 id="1-display-and-timing">1. Display and timing</h2>
+<ul>
+<li><strong>VGA mode 13h, 320x200, 256 colours.</strong> The pixels are
+<strong>not square</strong>: a CRT shows 320x200 on a 4:3 screen, so
+each pixel is 1.2 times taller than wide. The engine knows: its vertical
+focal length is <code>fy = fx * 5/6</code>
+(<code>fx = 42*128 = 5376</code>, <code>fy = 4480</code> for the logo's
+fov 42; 200/240 = 0.8333). The port draws the real 320x200 index buffer
+into a canvas stretched to a 4:3 box.</li>
+<li><strong>One tick = 3.5 ms, 285.714 per second.</strong> A PIT
+interrupt phase-locked to the vertical retrace (see the asm write-up,
+snippet 14) calls the scene's <em>A callback</em> four times per
+refresh. The frame function <em>B</em> runs from the main loop as fast
+as it can. Everything the demo shows is a function of the tick counter,
+not of the frame number, except a few accumulations per rendered frame
+(water, temple pages).</li>
+<li><strong>The script is keyed on the music.</strong> A 97-entry table
+<code>{order, row, handler}</code> (0x1032e4) is compared with the DSMI
+position every main-loop iteration. 1 row = 22 ticks = 0.0769 s. The
+handlers either start a scene (two callbacks: A per tick, B per frame),
+stop it, or fire a palette operation (white flash <code>0x1c498</code>,
+inverted flash <code>0x1c454</code>, fade to black
+<code>0x1c438</code>). <strong>The demo timeline is the song
+position</strong>, which is why the port can seek: it sets the module
+position and re-renders a pure function of the tick.</li>
+<li><strong>Palette is a first-class effect.</strong> Fades and flashes
+are float32 ramps run from the tick ISR (snippet 15), not scene
+code.</li>
+</ul>
+<h2 id="2-timeline">2. Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>time</th>
+<th>order:row</th>
+<th>scene</th>
+<th>what you see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0:00 - 0:19.6</td>
+<td>0:00 - 3:63</td>
+<td><strong>intro</strong></td>
+<td>still picture revealed by wandering "light drops"</td>
+</tr>
+<tr>
+<td>0:19.6 - 0:29.5</td>
+<td>3:63 - 5:63</td>
+<td><strong>logo</strong></td>
+<td>the CNCD logo, a camera <em>inside</em> a spinning spiky star</td>
+</tr>
+<tr>
+<td>0:29.5 - 0:59</td>
+<td>5:63 - 11:63</td>
+<td><strong>credits</strong></td>
+<td>flight through a procedural tube, credit names, then a spike
+ball</td>
+</tr>
+<tr>
+<td>0:59 - 1:08.9</td>
+<td>11:63 - 14:00</td>
+<td><strong>warp</strong> (nigga 1/2)</td>
+<td>big sprite behind a 2-texture warped grid</td>
+</tr>
+<tr>
+<td>1:08.9 - 1:38.4</td>
+<td>14:00 - 19:63</td>
+<td><strong>flower</strong></td>
+<td>environment-mapped, morphing flowers in a textured tunnel,
+flashes</td>
+</tr>
+<tr>
+<td>1:38.4 - 1:58</td>
+<td>19:63 - 23:63</td>
+<td><strong>flight</strong></td>
+<td>heightfield landscape with fog, three env-mapped ships, sun and lens
+flares</td>
+</tr>
+<tr>
+<td>1:58 - 2:16.6</td>
+<td>23:63 - 27:48</td>
+<td><strong>water</strong></td>
+<td>corkscrew, fish and a ripple-refraction picture</td>
+</tr>
+<tr>
+<td>2:16.6 - 2:27.6</td>
+<td>27:48 - 29:63</td>
+<td><strong>warp</strong> again</td>
+<td>variants 3/4</td>
+</tr>
+<tr>
+<td>2:27.6 - 2:37.5</td>
+<td>29:63 - 31:63</td>
+<td><strong>twirl</strong></td>
+<td>5 variants of the polar-table spiral warp</td>
+</tr>
+<tr>
+<td>2:37.5 - 3:02.8</td>
+<td>31:63 - 36:24</td>
+<td><strong>temple</strong> (tunnel2)</td>
+<td>glass temple, light beams, ten flares; fade-out at 35:48</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-the-3d-engine-surrender">3. The 3D engine ("Surrender")</h2>
+<p>A complete software engine, written for this demo and then re-used
+scene after scene. <code>re/notes_engine.md</code> has every offset; the
+structure:</p>
+<ul>
+<li><strong>Scene graph</strong>: nodes of 0xc8 bytes (position int32,
+3x3 <code>double</code> matrix at +0x28, parent chain, flags), meshes
+(vertex 0x40 B, face 0x34 B, material 0x44 B), lights (range + peak),
+billboards (flare/sun/smoke), 2D sprites (types 1..4). Matrices are
+doubles; <strong>the rotation of an object is accumulated per
+tick</strong> (<code>M *= Rinc</code> in the ISR callback), which is why
+the port keeps checkpoints and replays.</li>
+<li><strong>Per frame</strong>: camera-space transform
+(<code>d = Mcam^T (obj - cam)</code>, vertex positions in 1/128 units),
+projection to 28.4 fixed point screen coordinates, outcodes for the 4
+sides + near plane, back-face cull by integer face normal, per-vertex
+lighting (<code>I = (peak - |D|*peak/range) * n.D/(|D|*512)</code>,
+shade 0..0x3e0, table row = shade&gt;&gt;5), near-plane clipping into up
+to two triangles, <strong>radix sort of faces by mean depth</strong>
+(painter's algorithm, 3 passes of 8 bits), then the face functions.</li>
+<li><strong>Six face functions, all "table driven"</strong>. There is no
+true colour arithmetic anywhere: the lookup tables do the maths.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>fn</th>
+<th>name</th>
+<th>per pixel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x30e5c</td>
+<td>GOURAUD</td>
+<td><code>shade[(s&gt;&gt;16)&lt;&lt;8 + tex[u,v]]</code></td>
+</tr>
+<tr>
+<td>0x2edb0</td>
+<td>TEX</td>
+<td><code>tex[u,v]</code> (flat)</td>
+</tr>
+<tr>
+<td>0x2e264</td>
+<td>GOURAUD2</td>
+<td><code>shade2[s2&lt;&lt;8 + shade[s1&lt;&lt;8 + tex]]</code> (shade +
+fog)</td>
+</tr>
+<tr>
+<td>0x3269c</td>
+<td>BLEND</td>
+<td><code>shd[tex&lt;&lt;8 + dst]</code> (translucency through a 64 KB
+table)</td>
+</tr>
+<tr>
+<td>0x32dc8</td>
+<td>SHADEDST</td>
+<td><code>shd[s&lt;&lt;8 + dst]</code> (darken/lighten the existing
+pixel, gouraud)</td>
+</tr>
+<tr>
+<td>0x332e0</td>
+<td>LIGHTMAP</td>
+<td><code>shade[lmap[u2,v2]&lt;&lt;8 + tex]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each has an affine and a perspective-correct version (spans of
+2^(n-1) pixels with a reciprocal per span), selected per face by bits
+10..12 of its flags. <strong>Every scene of the demo uses the affine
+version</strong> - the textures hide it.</p>
+<ul>
+<li><strong>Environment mapping</strong> (<code>0x36cc4</code>) is the
+only uv generator ever enabled: <code>u,v</code> from the transformed
+vertex normal, giving chrome flowers, glass and metal fish for free with
+a 256x256 picture.</li>
+<li><strong>Shade tables</strong>: the <code>.shd</code> files (16 KB =
+64 rows x 256, or 64 KB = 256 x 256) map <code>(level, colour)</code>
+-&gt; colour. The palettes were built to make this work (ramps of 64
+levels per base colour group); <code>.int</code> and some
+<code>.shd</code> are <em>blend</em> tables, <code>.qnt</code>
+quantisation/ light tables, <code>.sdw</code> shadow tables,
+<code>.fog</code> fog tables.</li>
+<li><strong>Sprites</strong>: 4 types: copy, table blit, colour-keyed
+copy, keyed table blit. The "credit names" and the dark corner masks are
+type 4/2 sprites.</li>
+<li>The <strong>port</strong> (<code>web/js/engine3d.js</code>, 43 KB)
+reproduces this bit-exactly in palette-index space: 180/180 recorded
+random triangles identical on every face function, the logo scene
+278/278 frames identical. Everything is reverse-engineered, not
+approximated, except the points flagged in the README.</li>
+</ul>
+<h2 id="4-scene-by-scene">4. Scene by scene</h2>
+<h3 id="41-intro-0---196-s---light-drops">4.1 Intro (0 - 19.6 s) - light
+drops</h3>
+<p>A 320x200 picture (<code>intro/intro.raw</code>) is <em>revealed</em>
+by light. 130 "drops" (position f32, energy) deposit light into a 16-bit
+light buffer; each frame the buffer is smoothed in place
+(<code>(4c + l + r + u + d)/8</code>, so it diffuses), then
+<code>fb[i] = intro.shd[clamp(light,0,63)&lt;&lt;8 | pixel]</code> - the
+64-row shade table maps the picture to 64 brightness levels. The emitter
+centre is a random walk driven by sines
+(<code>A0 += sin(.02t)*47 + cos(.0232t) + sin(.0369t)*4.4</code> ...),
+re-rolled by <code>rand()</code> when it leaves the screen; each drop
+has a 1 in 20 chance per frame to respawn near it with a random energy.
+A dark disc of radius 60 around (80,80) is never lit (the drops are
+rejected there). After 14.77 s all 130 drops respawn with high energy:
+the picture floods with light. <em>Ported pixel-exact.</em></p>
+<h3 id="42-logo-196---295-s---the-camera-is-inside-the-star">4.2 Logo
+(19.6 - 29.5 s) - the camera is inside the star</h3>
+<p><code>logo/obuke.sro</code>: a spiky star of <strong>130 vertices,
+256 faces</strong>, radius ~516. The camera sits at (0,0,100), i.e.
+<strong>inside</strong> the star, looking down +Z; the star rotates
+about three axes (<code>R = Euler(-0.01, 0.00867, 0.0123)</code> per
+tick), a point light sits at the origin (range 550, peak 1600). Every
+face is textured with a 256x256 <em>twirl</em> texture
+(<code>twlogo.raw</code>) and lit through <code>logo.shd</code>. Half of
+the faces cross the near plane each frame: the logo scene is the heavy
+exerciser of the near-clip code. Over it: the "logo mask"
+(<code>inmask.raw</code>, 253x147, values 0..15) darkens the star
+through <code>inmask.shd</code> in the shape of the letters (a drop
+shadow), and from 22.15 s the "INSIDE" text (<code>inside.raw</code>,
+249x139, colour key 0) is drawn 3 px right, 4 px down. <em>Ported
+bit-exact.</em></p>
+<h3 id="43-credits-295---59-s---the-tube">4.3 Credits (29.5 - 59 s) -
+the tube</h3>
+<p>A flight through a <strong>procedural tube</strong>.
+<code>credits/tuubi.sro</code> has <strong>11 rings x 12 vertices (132
+vertices, 240 faces)</strong>, scaled 7.0, and the <strong>same 11 rings
+are re-skinned every frame</strong> from a 1024-ring flight-path table
+(each row: ring centre, 12 brightnesses, 12 radius factors 0.67..1.6;
+generated at start-up by ~20 summed sines plus <code>rand()</code>; the
+port embeds the 110 KB table). The texture (<code>tunnel.raw</code>,
+256x1024) scrolls one ring per 10 path rings; each vertex shade is
+brightness minus an linear distance fog (asm snippet 10). The camera
+follows the path with exponential smoothing
+(<code>S1 = 0.8 S1 + 0.2 P</code>) and a 1 degree/tick roll; <strong>12
+additive smoke billboards</strong> (<code>sauhu.raw</code> 64x64 +
+<code>smoke.shd</code>) float along the path (the bright orbs). At 7:00,
+7:32, 8:00, 8:32, 9:00, 9:32 a white flash introduces the next credit
+name (DESTOP, WILI, JOUNI, JULIET, YOLK &amp; LEGEND:
+<code>kredu*.raw</code> blended with <code>tunnel.int</code> at
+(0,117)); at 9:48 the <strong>spike ball</strong>
+<code>piikkis.sro</code> (<strong>252 vertices, 260 faces</strong>,
+environment-mapped with <code>piikkis.raw</code>) catches the camera
+(its follow offset decreases by 0.015 ring/tick). The border mask
+<code>wtrmask.raw</code> darkens the screen edges until then.
+<em>839/841 frames bit-exact.</em></p>
+<h3 id="44-the-warp-grid-nigga-59---689-s-and-1366---1476-s">4.4 The
+warp grid, "nigga" (59 - 68.9 s and 136.6 - 147.6 s)</h3>
+<p>A big transparent sprite (a person; <code>sprite1/2/4/9.raw</code>)
+in front of a <strong>warped, rotating 8x8-vertex grid</strong> (7x7
+quads, 98 triangles) that is textured with <strong>two textures at
+once</strong>: each vertex has two uv pairs
+<code>(512i + aA sin a + aB sin b + aC sin c, 512j + ...)</code> driven
+by three phase accumulators, and the rasteriser <code>0x33a82</code>
+outputs <code>shd[tex2[u2,v2]&lt;&lt;8 | tex1[u1,v1]]</code> - the
+<code>.shd</code> here is a 256x256 <em>blend</em> table, so two
+scrolling textures interfere into a liquid pattern. The event at 61.5 s
+and 146.4 s flips the sign of the warp frequencies. Variants 3 and 4
+(second pass) add a room box (<code>poksi.sro</code>, <strong>98
+vertices, 192 faces</strong>, 2688 x 6600 x 6000 units), a lit gouraud
+floor and a shadow quad (<code>shadow4/9.raw</code>, <code>.sdw</code>).
+The port reproduces variants 1 and 2 (~96 % identical pixels, the rest
++-1 texel) and variants 3/4 bit-exactly (0 differing pixels): the room
+is the engine's <code>poksi.sro</code> box at scale 8, drawn with
+per-triangle material uvs (the mapper prologue 0x37e48 copies 3 uv pairs
+from the material into the vertices), lit by one animated point light,
+with a 16 level <code>BLEND</code> shadow quad; camera, light and shadow
+vertex are closed forms of the tick counters (see
+<code>re/notes_nigga.md</code>).</p>
+<h3 id="44b-flower-689---984-s---morphing-chrome-flowers">4.4b Flower
+(68.9 - 98.4 s) - morphing chrome flowers</h3>
+<p>A <strong>tunnel</strong> (<code>tunneli1.sro</code>, 20 KB,
+<strong>732 vertices, 1440 faces</strong>: faces &gt;= 350 hidden, a
+sliding window of visible faces at 0.75 faces/tick) is textured
+(<code>jeesus1/2.raw</code>) with a <strong>per-quad material
+rectangle</strong> - no per-vertex uv; the prologue <code>0x37e3c</code>
+copies the material's uv rectangle into each triangle and scrolling is
+six dword writes per frame (3.7 texel/tick). Its vertex shades come from
+a table:
+<code>300 sin(.05x) cos(.04y) + 700 sin(.04926 i) + rand()%600 - 300</code>.
+In the middle: <strong>a flower</strong> from 10 morph targets
+(<code>kukka1.sro</code>, <code>kukka1-2..8</code>,
+<code>kukka2*.sro</code>, each <strong>~110 vertices, ~125
+faces</strong>, 2.3 KB) blended with <code>t = |sin(phase)|</code>
+(period 157 ticks), environment-mapped chrome (TEX, unshaded), spinning
+(<code>euler(ax[idx], spin, 0)</code>, spin += 0.02/tick), parented to
+the camera 1500 units ahead. The 9 open/close events (14:24 .. 19:12)
+alternate white and inverted flashes and switch to the next shape. The
+camera follows a <strong>LightWave scene</strong>
+(<code>tunnel1.lws</code>, 2631 bytes) with spline-interpolated keys
+(Catmull-Rom, scale 3000), evaluated at sub-frame resolution (asm
+snippet 4 of <code>notes_flower</code>). <em>75 % of the golden frames
+pixel-exact, the rest differs on flash frames.</em></p>
+<h3 id="45-flight-984---1181-s---terrain-ships-lens-flares">4.5 Flight
+(98.4 - 118.1 s) - terrain, ships, lens flares</h3>
+<p>A <strong>heightfield landscape</strong> with <strong>fog</strong>: a
+128x128 height table (sum of sin/cos terms, smoothed and mirrored; each
+cell <code>{height, shade}</code>) is rendered as a 19x19-vertex window
+(648 faces) following the camera, centred on the camera cell; texture
+coordinates <code>u = ((gx%18)+c)*8192/36</code> so the 512x512
+<code>map.raw</code> tiles with a period of 18 cells without popping.
+Per-pixel <code>fog[fl][shd[sl][tex]]</code> is three chained table
+lookups (asm 1). <strong>Cell shade from the slope</strong>:
+<code>cos(atan(dh*k)+c)</code> computed with <em>one</em>
+<code>fpatan</code> (<code>atan2(y,1)</code>). <strong>Three env-mapped
+ships</strong> (<code>ship.sro</code>: <strong>200 vertices, 399
+faces</strong>; river picture as environment) fly a rand()-steered
+formation; the camera follows with its own jitter. The
+<strong>sun</strong> (<code>sun.raw</code>, 128x128, keyed on the sky
+colour) and <strong>8 lens flares</strong> (lens1..5.raw: 74x63, 52x43,
+31x23, 12x11, 4x4, plus the additive <code>flare.shd</code>) are placed
+along the line from the screen centre through the sun,
+<code>C + k(S-C)</code> with k = 0, -0.2, 0.5, 0.3, -1.3, -0.9, -0.47,
+-2.0, only when the sun is within the screen +-12 px.
+<em>Approximate</em>: the ships' env normals, the exact span
+rounding.</p>
+<h3 id="46-water-118---1366-s">4.6 Water (118 - 136.6 s)</h3>
+<ul>
+<li>a 320x200 picture (<code>water.raw</code>) seen through <strong>a
+ripple simulation</strong> (asm snippet 7); <strong>8 fish</strong>
+(<code>fish.sro</code>, <strong>8 vertices, 10 faces</strong>, scale
+0.15) swim by a sine formula
+<code>S = sin((t+171i)*0.00158) + cos((t-57i)*0.0027) + 0.1 cos(t*0.0081)</code>
+(heading += S degrees, speed max(30 S + 10, 15)), turn around when they
+leave the screen, and <strong>each fish's screen position drops a
+splash</strong> in the wave buffer (the triangle-shaped wedge of snippet
+12): the fish stir the water. Their 4,5,6 vertices and normals wiggle
+with sines (the normals drive the env map, so the picture swims over the
+fins). Drawn through <code>water.int</code> (BLEND) over the
+ripples;</li>
+<li>a <strong>corkscrew</strong> (<code>water/obuke.sro</code>:
+<strong>287 vertices, 570 faces</strong>, scale 0.6), env-mapped with
+<code>waterenv.raw</code>, spinning 0.84 turns/s about its own
+axis;</li>
+<li>3 random raindrops per frame (a 1 in 200 chance each) add 7x7
+impulses. <em>Bit-exact (528/528 frames) — the rand() state and tick
+phase are the only free constants, stored in
+<code>waterdata.js</code>.</em></li>
+</ul>
+<h3 id="47-twirl-1476---1575-s">4.7 Twirl (147.6 - 157.5 s)</h3>
+<p>The <code>jeesus1/2</code>, <code>nigga2/4</code> and
+<code>river</code> pictures spiral under a <strong>precomputed polar
+table</strong>: the original builds, once at start-up, a 64000-entry
+table mapping each screen pixel to (radius byte, angle byte); per frame
+only 256 words <code>W[r]</code> are rebuilt from four float32 phase
+accumulators and two sines, and every pixel does
+<code>tex[ T1 + W[T0] ]</code> (asm snippet 8). Five parameter sets,
+switched at 30:24, 30:48, 30:12, 31:36 with a white flash and a palette
+swap (the table is walked in order so 30:12 fires together with 30:48,
+an oddity the port reproduces). <em>Pixel-exact except around
+flashes.</em></p>
+<h3 id="48-temple-1575---18275-s">4.8 Temple (157.5 - 182.75 s)</h3>
+<p>A dark <strong>glass temple</strong> viewed by a camera in orbit
+(parent pivot spinning 0.01 rad/tick, camera roll 0.005, zoom
+<code>0.6 + 0.3 sin(...)</code>):</p>
+<ul>
+<li><code>mesta21.sro</code> (49 v / 84 f) opaque env-mapped;
+<code>mesta22.sro</code> (192 v / 256 f) <strong>glass</strong> (BLEND
+through <code>temple.int</code>, env-mapped); <code>mesta23.sro</code>
+(173 v / 268 f) gouraud with its own uv, lit by a breathing point light
+(range = |sin| * 1000);</li>
+<li>three <strong>light beams</strong> <code>putki.sro</code> (15 v / 20
+f each, scaled 1.5,1.5,5.3 / 3,3,4.6), drawn with SHADEDST (they light
+up what is behind them), whose vertex shades slide on one sine (asm
+13);</li>
+<li><strong>ten additive flares</strong> (billboards of
+<code>flare.raw</code> 128x104 sorted <em>with the mesh faces</em> in
+the same radix list, so glass can occlude them);</li>
+<li><strong>no screen clear</strong>: the two page buffers alternate, so
+uncovered pixels keep the colour of the frame two frames earlier (cracks
+between faces glow with a trail); the port replays the frames in two
+buffers to get them right. Fade-out from 35:48, the demo stops at 36:24.
+<em>Bit-exact up to a sub-pixel error on one billboard edge.</em></li>
+</ul>
+<h2 id="5-cool-tricks-summary">5. Cool tricks (summary)</h2>
+<ol type="1">
+<li><strong>Self-modifying inner loops</strong> with texture/table base
+and shifts/masks patched into immediates; the left/right edge opcode
+patch (asm 1, 2).</li>
+<li><strong>Table-driven pixel maths</strong>: gouraud, fog,
+translucency, additive flares, shadow, interference between two textures
+are all lookups in 16 KB or 64 KB tables whose index is built from two
+byte registers (<code>ch:cl</code>, <code>dh:dl</code>,
+<code>ah:al</code>).</li>
+<li><strong>Precomputed warps</strong>: twirl = 64000-entry polar table
++ 256-word wobble (8 instr/pixel); the credits tube = 11 reskinned rings
++ a scrolling texture; the intro = diffusion + one lookup.</li>
+<li><strong>Procedural geometry from the same tools</strong>: the tube,
+the terrain, the grid are <em>the same mesh objects</em> (vertex/face
+lists) with vertices rewritten each frame; seam vertices patched into
+faces.</li>
+<li><strong>Vblank-locked 285 Hz tick</strong> that decouples animation
+from the frame rate, and a script keyed on the <em>music</em>
+position.</li>
+<li><strong>Palette effects in float</strong>, not in the scenes.</li>
+<li><strong>Painter's algorithm with a radix sort</strong>, billboards
+inserted in the same list.</li>
+<li><strong>Bugs kept in the art</strong>: the wedge-shaped splash,
+<code>y &gt; 199</code> fixup writing x, a scene that never clears its
+buffers (the glass temple's trails).</li>
+</ol>
+<h2 id="6-asset-catalogue-insidedat-96-files-lzss">6. Asset catalogue
+(INSIDE.DAT, 96 files, LZSS)</h2>
+<p>The container (loader 0x1c0e8): <code>u32 usize</code> + LZSS stream
+(flag byte LSB first, 1 = literal; 0 = 2-byte match: distance
+<code>b0 | (b1&amp;0xf0)&lt;&lt;4</code>, length
+<code>(b1&amp;15)+3</code>); the unpacked 2,721,868 bytes end with a
+directory of 0x30-byte entries
+<code>{name[0x20], size, offset, pad[2]}</code> and a final count.
+<code>tools/dat.py</code> unpacks it (<code>re/dat_listing.txt</code>
+lists all 96 entries); <code>web/js/dat.js</code> reads it in the
+browser. Formats:</p>
+<table>
+<thead>
+<tr>
+<th>ext</th>
+<th>format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.raw</code></td>
+<td>8-bit palette-indexed pixels (320x200, 256x256, 512x512, 256x1024 or
+sprites of free size)</td>
+</tr>
+<tr>
+<td><code>.pal</code></td>
+<td>768 bytes, 256 x RGB, 6-bit VGA values</td>
+</tr>
+<tr>
+<td><code>.shd</code></td>
+<td>64 or 256 rows x 256: shade or blend table</td>
+</tr>
+<tr>
+<td><code>.int .qnt .sdw .fog</code></td>
+<td>auxiliary 256x256 / 128x256 / 64x64 tables (blend, light levels,
+shadow, fog)</td>
+</tr>
+<tr>
+<td><code>.sro</code></td>
+<td><code>u32 0x001df020, 0x20, nverts, faceofs, nfaces</code>, then
+vertices <code>{i16 x,y,z; u16 u,v; u16 0}</code> (12 B) and faces
+<code>{u16 0; u16 i1,i2,i3}</code> (8 B). Some files have a 0x14-byte
+header whose first dword is a size, not the magic: the loader ignores
+it.</td>
+</tr>
+<tr>
+<td><code>.lws</code></td>
+<td>LightWave scene text (only <code>flower/tunnel1.lws</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Scene objects: logo <code>obuke</code> 130 v / 256 f; credits
+<code>tuubi</code> 132 v / 240 f, <code>piikkis</code> 252 v / 260 f;
+nigga <code>poksi</code> 98 v / 192 f; flower <code>tunneli1</code> 732
+v / 1440 f, <code>kukka1..</code> 111 v / 125 f (kukka2: 109 / 129) x 11
+targets; flight <code>ship</code> 200 v / 399 f; water
+<code>obuke</code> 287 v / 570 f, <code>fish</code> 8 v / 10 f; temple
+<code>mesta21</code> 49/84, <code>mesta22</code> 192/256,
+<code>mesta23</code> 173/268, <code>putki</code> 15/20 (x3). The whole
+DAT contains duplicates that the program can never reach (3x
+<code>temple/putki.sro</code>, 2x <code>flower/kukka1.sro</code>,
+because the lookup is a linear <code>strcmp</code>, first match
+wins).</p>
+<h2
+id="6b-2d3d-art-used-what-each-asset-is-where-it-lives-how-it-was-read">6b.
+2D/3D art used (what each asset is, where it lives, how it was
+read)</h2>
+<p>All art lives in <code>INSIDE.DAT</code> (section 6); the offsets
+below are into the <em>unpacked</em> 2,721,868-byte blob
+(<code>re/dat_listing.txt</code> has every offset,
+<code>tools/dat.py</code> extracts to <code>re/assets/</code>). Nothing
+is stored as an image file: every picture is a <strong>headerless 8-bit
+palette-indexed raster</strong> (<code>.raw</code>) whose size is
+<em>not</em> in the file; the dimensions come from the original's code
+(<code>re/notes_*.md</code>, checked here: width x height equals the
+byte size for every file below). Palettes are separate <code>.pal</code>
+files, 768 B = 256 x RGB, <strong>6-bit VGA values</strong> (previews
+scale <code>v*255/63</code>); each scene loads its own and switches the
+DAC to it. In the <code>nigga</code> variants the first three palette
+bytes are zeroed at load so that colour 0 is black and acts as the
+sprite key. "Colours" = distinct indices actually present in the raster
+(counted from the extracted files). Previews:
+<code>figures/inside_art_*.png</code> (generated with Pillow from
+<code>re/assets</code>, one palette per scene as in the table).</p>
+<h3 id="2d-rasters">2D rasters</h3>
+<table>
+<thead>
+<tr>
+<th>file (offset in blob)</th>
+<th>size</th>
+<th>palette</th>
+<th>colours</th>
+<th>role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>intro/intro.raw</code> (17152)</td>
+<td>320x200</td>
+<td><code>intro.pal</code></td>
+<td>256</td>
+<td>the title picture, plain copy, index 0 transparent;
+<code>intro.shd</code> (16 KB, 64 x 256) maps index 0 -&gt; 76</td>
+</tr>
+<tr>
+<td><code>logo/twlogo.raw</code> (81152)</td>
+<td>256x256</td>
+<td><code>logo.pal</code></td>
+<td>103</td>
+<td>texture of the star (one material, shade table
+<code>logo.shd</code>)</td>
+</tr>
+<tr>
+<td><code>logo/inside.raw</code> (163840) / <code>inmask.raw</code>
+(202091)</td>
+<td>249x139 / 253x147</td>
+<td><code>logo.pal</code></td>
+<td>256 / 16</td>
+<td>logo lettering (key 0) / its mask, values 0..15, darkens the star
+through <code>inmask.shd</code> (16 x 256)</td>
+</tr>
+<tr>
+<td><code>credits/tunnel.raw</code> (244146)</td>
+<td>256x1024</td>
+<td><code>tunnel.pal</code></td>
+<td>221</td>
+<td>tube texture, scrolled (shade <code>tunnel.shd</code>, blend
+<code>tunnel.int</code>)</td>
+</tr>
+<tr>
+<td><code>credits/piikkis.raw</code> (657842)</td>
+<td>256x256</td>
+<td><code>tunnel.pal</code></td>
+<td>208</td>
+<td>texture of the spike ball at the end of the credits</td>
+</tr>
+<tr>
+<td><code>credits/sauhu.raw</code> (588210)</td>
+<td>64x64</td>
+<td><code>tunnel.pal</code></td>
+<td>31</td>
+<td>orb/smoke billboard (12 of them), additive through
+<code>smoke.shd</code> (256 x 256)</td>
+</tr>
+<tr>
+<td><code>credits/wtrmask.raw</code> (816192)</td>
+<td>320x200</td>
+<td><code>tunnel.pal</code></td>
+<td>32</td>
+<td>border darkening mask (blend <code>wtrmask.int</code>)</td>
+</tr>
+<tr>
+<td><code>credits/kredu1,7,2,8,3,6.raw</code></td>
+<td>173x75, 129x75, 146x75, 154x72, 318x82, 294x75</td>
+<td><code>tunnel.pal</code></td>
+<td>30..32</td>
+<td>credit names (DESTOP, WILI, JOUNI, JULIET, YOLK &amp; LEGEND;
+<code>kredu6</code> is never shown)</td>
+</tr>
+<tr>
+<td><code>flight/map.raw</code> (1044079)</td>
+<td>512x512</td>
+<td><code>map.pal</code></td>
+<td>170</td>
+<td>terrain colour texture (<code>map.shd</code> 64 x 256 light,
+<code>map.fog</code> 128 x 256 fog)</td>
+</tr>
+<tr>
+<td><code>flight/river.raw</code> (1355375)</td>
+<td>256x256</td>
+<td><code>map.pal</code></td>
+<td>74</td>
+<td>fish-eye sky/ground environment map for the ships</td>
+</tr>
+<tr>
+<td><code>flight/sun.raw</code> (1027695)</td>
+<td>128x128</td>
+<td><code>map.pal</code></td>
+<td>25</td>
+<td>ready-made sun, key colour 221 (sky)</td>
+</tr>
+<tr>
+<td><code>flight/lens1..5.raw</code> (954400..)</td>
+<td>74x63, 52x43, 31x23, 12x11, 4x4</td>
+<td><code>map.pal</code></td>
+<td>8, 6, 6, 6, 4</td>
+<td>lens-flare hexagons, 0 = transparent, additive through
+<code>flare.shd</code> (256 x 256)</td>
+</tr>
+<tr>
+<td><code>temple/temple.raw</code> (1427303)</td>
+<td>256x256</td>
+<td><code>temple.pal</code></td>
+<td>256</td>
+<td>glass-temple texture (blend <code>temple.int</code>)</td>
+</tr>
+<tr>
+<td><code>temple/flare.raw</code> (1492839)</td>
+<td>128x104</td>
+<td><code>temple.pal</code></td>
+<td>56</td>
+<td>10 flare billboards (additive <code>flare.shd</code>)</td>
+</tr>
+<tr>
+<td><code>nigga/niggaN.raw</code> N = 1, 2, 9, 4</td>
+<td>256x256</td>
+<td><code>niggaN.pal</code></td>
+<td>98, 165, 138, 180</td>
+<td>warp-grid background / room texture (<code>.shd</code> or
+<code>.qnt</code> shade tables)</td>
+</tr>
+<tr>
+<td><code>nigga/spriteN.raw</code></td>
+<td>164x156, 172x200, 274x147, 170x168</td>
+<td><code>niggaN.pal</code></td>
+<td>156, 103, 107, 77</td>
+<td>foreground sprites (colour 0 = key), placed at (0,44), (0,0),
+(46,53), (94,28)</td>
+</tr>
+<tr>
+<td><code>nigga/shadow9.raw</code> / <code>shadow4.raw</code></td>
+<td>128x128 / 256x256</td>
+<td><code>niggaN.pal</code></td>
+<td>16 / 16</td>
+<td>shadow quad texture, 16 levels, blended through
+<code>shadowN.sdw</code> (64 x 64)</td>
+</tr>
+<tr>
+<td><code>water/water.raw</code>, <code>waterenv.raw</code></td>
+<td>320x200, 256x256</td>
+<td><code>water.pal</code></td>
+<td>143, 135</td>
+<td>background picture; environment texture for the spiral (blend
+<code>water.int</code>)</td>
+</tr>
+<tr>
+<td><code>flower/jeesus1.raw</code>, <code>jeesus2.raw</code></td>
+<td>256x256</td>
+<td><code>jeesus.pal</code></td>
+<td>98, 160</td>
+<td>flower texture; tunnel texture (also reused by the twirl scene,
+together with <code>nigga2/4</code> and <code>river</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><img src="figures/inside_art_logo_credits.png"
+alt="logo and credits" /> <img src="figures/inside_art_credit_names.png"
+alt="credit names" /> <img src="figures/inside_art_flight.png"
+alt="flight" /> <img src="figures/inside_art_temple.png" alt="temple" />
+<img src="figures/inside_art_nigga.png" alt="nigga" /> <img
+src="figures/inside_art_water_flower.png" alt="water and flower" /> <img
+src="figures/inside_art_palettes.png" alt="the palettes" /></p>
+<p>The <code>.shd/.int/.qnt/.sdw/.fog</code> files are lookup tables,
+not pictures: shade tables <code>shd[level][texel]</code>, blend tables
+<code>int[src&lt;&lt;8 | dst]</code> (not a plain add), additive flare
+tables <code>shd[texel][dst]</code>, fog <code>fog[level][colour]</code>
+(rows &gt;= 62 are all 221, the sky colour). The unused
+<code>water.shd</code> is loaded but never read by the water scene.</p>
+<h3 id="3d-meshes-sro-22-distinct-files">3D meshes (<code>.sro</code>,
+22 distinct files)</h3>
+<p>Header
+<code>u32 {magic 0x1df020 | size, 0x20 | 0x14, nverts, faceofs, nfaces}</code>,
+vertices <code>{i16 x,y,z; 6 more bytes}</code> at 0x14, faces
+<code>{u16 0; u16 a,b,c}</code> at <code>faceofs</code> (triangles
+only). Counts read from the extracted files (they agree with the list in
+section 6):</p>
+<table>
+<thead>
+<tr>
+<th>mesh</th>
+<th>bytes</th>
+<th>vertices</th>
+<th>faces</th>
+<th>coordinate range (per axis, int16)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>logo/obuke</code></td>
+<td>3640</td>
+<td>130</td>
+<td>256</td>
+<td>+-512 (star)</td>
+</tr>
+<tr>
+<td><code>credits/tuubi</code></td>
+<td>3536</td>
+<td>132</td>
+<td>240</td>
+<td>y -488..69, z -352..623</td>
+</tr>
+<tr>
+<td><code>credits/piikkis</code></td>
+<td>5136</td>
+<td>252</td>
+<td>260</td>
+<td>+-435, +-457, +-511</td>
+</tr>
+<tr>
+<td><code>nigga/poksi</code></td>
+<td>2744</td>
+<td>98</td>
+<td>192</td>
+<td>x +-337, y -413..425, z -382..511 (drawn at scale 8)</td>
+</tr>
+<tr>
+<td><code>flower/tunneli1</code></td>
+<td>20324</td>
+<td>732</td>
+<td>1440</td>
+<td>x -1526..2826, y -5265..224, z -15659..-5531</td>
+</tr>
+<tr>
+<td><code>flower/kukka1</code>, <code>-2</code>..<code>-8</code> (8
+files; a 9th copy of <code>kukka1</code> is unreachable)</td>
+<td>2352</td>
+<td>111</td>
+<td>125</td>
+<td>about +-1000 (the 11 morph targets of the flower)</td>
+</tr>
+<tr>
+<td><code>flower/kukka2</code>, <code>kukka2-2</code></td>
+<td>2360</td>
+<td>109</td>
+<td>129</td>
+<td>+-1000 / +-697</td>
+</tr>
+<tr>
+<td><code>flight/ship</code></td>
+<td>5624</td>
+<td>200</td>
+<td>399</td>
+<td>+-626, -773..281, -767..780</td>
+</tr>
+<tr>
+<td><code>water/obuke</code></td>
+<td>8024</td>
+<td>287</td>
+<td>570</td>
+<td>spiral, x -940..607, y -1639..1923</td>
+</tr>
+<tr>
+<td><code>water/fish</code></td>
+<td>208</td>
+<td>8</td>
+<td>10</td>
+<td>+-150, +-226, -824..971</td>
+</tr>
+<tr>
+<td><code>temple/mesta21</code> / <code>22</code> / <code>23</code></td>
+<td>1280 / 4372 / 4240</td>
+<td>49 / 192 / 173</td>
+<td>84 / 256 / 268</td>
+<td>up to +-1843 / +-5758 / +-8192</td>
+</tr>
+<tr>
+<td><code>temple/putki</code> (3 copies, first used)</td>
+<td>372</td>
+<td>15</td>
+<td>20</td>
+<td>z +-608</td>
+</tr>
+</tbody>
+</table>
+<p>Wireframes of every file (edges of the triangle list, one fixed view,
+<code>figures/inside_art_meshes_wire.png</code>; the shaded view of 12
+of them is <code>figures/objects_3d.png</code>):</p>
+<p><img src="figures/inside_art_meshes_wire.png"
+alt="wireframes of all .sro" /></p>
+<p><code>.lws</code> (<code>flower/tunnel1.lws</code>, 2631 B) is the
+LightWave scene of the flower tunnel (text).</p>
+<h3 id="data-produced-by-code-at-start-up-not-in-the-dat">Data produced
+by code at start-up (not in the DAT)</h3>
+<ul>
+<li><strong>Terrain height and shade tables</strong> (flight): 128x128
+cells of <code>{i32 height, i32 shade}</code> built by init functions
+<code>0x1d450</code> / <code>0x1d36c</code>, heights -1448..246, shade
+160..1023. They are <strong>not</strong> derived from
+<code>map.raw</code>; the port stores a dump from the emulator in
+<code>web/js/flightdata.js</code> (<code>HTS</code>, <code>SHD</code>,
+Int16): <code>figures/inside_art_terrain_tables.png</code>. The terrain
+mesh itself (19x19 vertices around the camera cell, 512 units per cell)
+is regenerated every frame from the table.</li>
+<li><strong>Credits flight path</strong> (<code>0x2284c</code>): 1024
+rows x 0x6c bytes (ring centre, 12 ring brightnesses 0..1008, 12 radius
+factors 0.67..1.6), a running sum of about 20 sines plus values from the
+Watcom <code>rand()</code> stream; dumped to
+<code>web/js/creditsdata.js</code>. The tube's 11 x 12 vertices are
+rewritten each frame from it.</li>
+<li><strong>Randomised starts</strong>: the flare directions of the
+temple (<code>rand()</code> at init) are embedded in
+<code>tunnel2.js</code>; the water scene's rand state and fish start are
+derived from <code>srand(0x45eafc)</code>
+(<code>waterdata.js</code>).</li>
+<li><strong>Intro light buffer</strong>: a 320x200x16-bit buffer
+diffused each frame (<code>notes_intro.md</code>).</li>
+</ul>
+<p><img src="figures/inside_art_terrain_tables.png"
+alt="terrain tables" /></p>
+<h2 id="7-how-the-original-was-reverse-engineered">7. How the original
+was reverse engineered</h2>
+<ol type="1">
+<li><code>INSIDE.EXE</code> is PMODE/W (LE-style stub with compressed
+objects): <code>re/unpack_pmodew.py</code> runs the PMODE/W loader under
+<strong>Unicorn</strong> and dumps the 64 MB guest memory at the program
+entry (<code>mem0.bin</code>), so every address is a linear address into
+a pristine image.</li>
+<li><code>re/emu.py</code> boots the real program (flat model, stub
+DOS/VGA/DMA/PIT) and <code>re/golden.py</code> runs it headless with a
+virtual 285.7 Hz clock: <strong>ground-truth frames</strong> for every
+scene.</li>
+<li>Per scene, a reverser located the start handler in the 97-entry
+script table, walked A/B, extracted tables from live memory where they
+depended on <code>rand()</code>, and ported the code to
+<code>web/js/scenes/*.js</code>; correctness measured against the golden
+frames in <em>palette-index space</em> (0 differing pixels = bit-exact)
+and with <code>tools/cmp.py</code> in RGB.</li>
+</ol>
+</body>
+</html>
